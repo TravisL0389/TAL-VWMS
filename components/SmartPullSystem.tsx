@@ -147,7 +147,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
   };
 
   return (
-    <div className="flex h-full min-w-0 flex-col gap-4 px-4 pb-6 pt-4 sm:px-6 sm:pt-5 lg:px-7">
+    <div className="flex min-h-full min-w-0 flex-col gap-4 px-4 pb-6 pt-4 sm:px-6 sm:pt-5 lg:h-full lg:min-h-0 lg:px-7">
       <header className="flex flex-col gap-3 border-b border-[#c7bcae] pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-[#232321] tracking-tighter uppercase leading-none">

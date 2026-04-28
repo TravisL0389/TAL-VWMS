@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   LayoutGrid, Package, Map as MapIcon, ClipboardList, BarChart3,
   Settings as SettingsIcon, Bell, ScanLine, Menu, X,
@@ -47,6 +47,96 @@ const App: React.FC = () => {
   const [whPickerOpen, setWhPickerOpen] = useState(false);
 
   const sidebarOnRight = store.settings.sidebarPosition === 'RIGHT';
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const root = document.getElementById('root');
+
+    const prevHtml = {
+      overflowX: html.style.overflowX,
+      overflowY: html.style.overflowY,
+      height: html.style.height,
+      minHeight: html.style.minHeight,
+      touchAction: html.style.touchAction,
+      overscrollBehaviorY: html.style.overscrollBehaviorY,
+      webkitOverflowScrolling: html.style.getPropertyValue('-webkit-overflow-scrolling'),
+    };
+    const prevBody = {
+      overflowX: body.style.overflowX,
+      overflowY: body.style.overflowY,
+      height: body.style.height,
+      minHeight: body.style.minHeight,
+      touchAction: body.style.touchAction,
+      overscrollBehaviorY: body.style.overscrollBehaviorY,
+      webkitOverflowScrolling: body.style.getPropertyValue('-webkit-overflow-scrolling'),
+    };
+    const prevRoot = root
+      ? {
+          height: root.style.height,
+          minHeight: root.style.minHeight,
+          overflowX: root.style.overflowX,
+          overflowY: root.style.overflowY,
+          touchAction: root.style.touchAction,
+          overscrollBehaviorY: root.style.overscrollBehaviorY,
+          webkitOverflowScrolling: root.style.getPropertyValue('-webkit-overflow-scrolling'),
+        }
+      : null;
+
+    html.style.overflowX = 'hidden';
+    html.style.height = 'auto';
+    html.style.minHeight = '100%';
+    html.style.overflowY = 'auto';
+    html.style.touchAction = 'pan-y';
+    html.style.overscrollBehaviorY = 'auto';
+    html.style.setProperty('-webkit-overflow-scrolling', 'touch');
+
+    body.style.overflowX = 'hidden';
+    body.style.height = 'auto';
+    body.style.minHeight = '100vh';
+    body.style.overflowY = 'auto';
+    body.style.touchAction = 'pan-y';
+    body.style.overscrollBehaviorY = 'auto';
+    body.style.setProperty('-webkit-overflow-scrolling', 'touch');
+
+    if (root) {
+      root.style.height = 'auto';
+      root.style.minHeight = '100vh';
+      root.style.overflowX = 'hidden';
+      root.style.overflowY = 'auto';
+      root.style.touchAction = 'pan-y';
+      root.style.overscrollBehaviorY = 'auto';
+      root.style.setProperty('-webkit-overflow-scrolling', 'touch');
+    }
+
+    return () => {
+      html.style.overflowX = prevHtml.overflowX;
+      html.style.overflowY = prevHtml.overflowY;
+      html.style.height = prevHtml.height;
+      html.style.minHeight = prevHtml.minHeight;
+      html.style.touchAction = prevHtml.touchAction;
+      html.style.overscrollBehaviorY = prevHtml.overscrollBehaviorY;
+      html.style.setProperty('-webkit-overflow-scrolling', prevHtml.webkitOverflowScrolling);
+
+      body.style.overflowX = prevBody.overflowX;
+      body.style.overflowY = prevBody.overflowY;
+      body.style.height = prevBody.height;
+      body.style.minHeight = prevBody.minHeight;
+      body.style.touchAction = prevBody.touchAction;
+      body.style.overscrollBehaviorY = prevBody.overscrollBehaviorY;
+      body.style.setProperty('-webkit-overflow-scrolling', prevBody.webkitOverflowScrolling);
+
+      if (root && prevRoot) {
+        root.style.height = prevRoot.height;
+        root.style.minHeight = prevRoot.minHeight;
+        root.style.overflowX = prevRoot.overflowX;
+        root.style.overflowY = prevRoot.overflowY;
+        root.style.touchAction = prevRoot.touchAction;
+        root.style.overscrollBehaviorY = prevRoot.overscrollBehaviorY;
+        root.style.setProperty('-webkit-overflow-scrolling', prevRoot.webkitOverflowScrolling);
+      }
+    };
+  }, []);
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -179,8 +269,8 @@ const App: React.FC = () => {
   // -------------------------------------------------------------------------
   return (
     <div
-      className="relative flex min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#ddd7cc] text-[#2b2925] lg:h-screen lg:overflow-hidden"
-      style={{ WebkitOverflowScrolling: 'touch' }}
+      className="relative flex min-h-screen w-full overflow-x-hidden bg-[#ddd7cc] text-[#2b2925] lg:h-screen lg:overflow-hidden"
+      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
     >
       {/* Desktop sidebar — left dock */}
       {!sidebarOnRight && (
@@ -288,8 +378,8 @@ const App: React.FC = () => {
 
         {/* Main content */}
         <main
-          className="flex-1 overflow-x-hidden overflow-y-auto"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="flex-1 overflow-visible lg:overflow-x-hidden lg:overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
         >
           {tab === 'dashboard' && (
             <Dashboard

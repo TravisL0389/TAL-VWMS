@@ -87,7 +87,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex justify-end"
+      onClick={onClose}
+      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
+    >
       <div className="absolute inset-0 bg-[#8f8679]/45" />
       <div
         className="relative flex h-full w-full max-w-xl flex-col border-l border-[#b6aa9b] bg-[#ede6dc]"
@@ -114,7 +118,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto">
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
+        >
           {/* Branding */}
           <Section title="Branding" icon={<Tag size={14} />}>
             <Field label="Brand Name">

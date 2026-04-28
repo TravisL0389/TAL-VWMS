@@ -78,7 +78,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
   const stepNames = ['Welcome', 'Warehouse', 'Categories', 'Review'];
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center overflow-auto bg-[#ddd7cc] p-4">
+    <div
+      className="fixed inset-0 z-[200] flex items-start justify-center overflow-auto bg-[#ddd7cc] p-4 sm:items-center"
+      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
+    >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(93,127,129,0.12)_0%,transparent_50%)]" />
       <div className="relative my-8 w-full max-w-3xl overflow-hidden rounded-xl border border-[#b6aa9b] bg-[#ede6dc] shadow-2xl">
         {/* Header / progress */}

@@ -131,10 +131,12 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
   // Sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState<number>(() => (typeof window === 'undefined' ? 1280 : window.innerWidth));
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const draggingRack = useRef<{ id: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
   const panning = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const hasAutoFitted = useRef(false);
 
   // Default active department whenever departments change
   useEffect(() => {
@@ -146,12 +148,22 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
   // Auto-collapse sidebar on small viewports
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth < 768) setSidebarOpen(false);
+      const nextWidth = window.innerWidth;
+      setViewportWidth(nextWidth);
+      if (nextWidth < 768) {
+        setSidebarOpen(false);
+      } else {
+        setMobileSheetOpen(false);
+      }
     };
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  useEffect(() => {
+    hasAutoFitted.current = false;
+  }, [warehouseId]);
 
   useEffect(() => {
     if (!selectedRackId) return;
@@ -179,6 +191,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
   }, [selectedRackId, confirming]);
 
   const sidebarOnRight = settings.sidebarPosition === 'RIGHT';
+  const compactViewport = viewportWidth < 1024;
 
   // Inventory counts per rack for occupancy display
   const occupancyByRack = useMemo(() => {
@@ -316,6 +329,27 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
     });
   }, [racks]);
 
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    if (racks.length === 0) {
+      if (compactViewport && !hasAutoFitted.current) {
+        setZoom(0.12);
+        setPan({ x: 80, y: 80 });
+        hasAutoFitted.current = true;
+      }
+      return;
+    }
+
+    if (!hasAutoFitted.current || compactViewport) {
+      const frame = window.requestAnimationFrame(() => {
+        fitToView();
+        hasAutoFitted.current = true;
+      });
+      return () => window.cancelAnimationFrame(frame);
+    }
+  }, [compactViewport, fitToView, racks.length, warehouseId]);
+
   const resetView = useCallback(() => {
     setZoom(0.15);
     setPan({ x: 200, y: 100 });
@@ -356,12 +390,65 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
     draggingRack.current = null;
   };
 
+  const onCanvasTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length !== 1) return;
+    if ((e.target as HTMLElement).dataset.canvas === 'true') {
+      const touch = e.touches[0];
+      panning.current = { startX: touch.clientX, startY: touch.clientY, origX: pan.x, origY: pan.y };
+      setSelectedRackId(null);
+    }
+  };
+
+  const onCanvasTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+
+    if (panning.current) {
+      e.preventDefault();
+      const dx = touch.clientX - panning.current.startX;
+      const dy = touch.clientY - panning.current.startY;
+      setPan({ x: panning.current.origX + dx, y: panning.current.origY + dy });
+    }
+
+    if (draggingRack.current && !locked) {
+      e.preventDefault();
+      const dx = (touch.clientX - draggingRack.current.startX) / zoom;
+      const dy = (touch.clientY - draggingRack.current.startY) / zoom;
+      const id = draggingRack.current.id;
+      setRacks(prev => prev.map(r => r.id === id
+        ? { ...r, x: Math.max(0, draggingRack.current!.origX + dx), y: Math.max(0, draggingRack.current!.origY + dy), isNew: r.isNew || true }
+        : r,
+      ));
+    }
+  };
+
+  const onCanvasTouchEnd = () => {
+    panning.current = null;
+    draggingRack.current = null;
+  };
+
   const onRackMouseDown = (e: React.MouseEvent, rack: Rack) => {
     e.stopPropagation();
     if (tool === 'SELECT') {
       setSelectedRackId(rack.id);
       if (!locked) {
         draggingRack.current = { id: rack.id, startX: e.clientX, startY: e.clientY, origX: rack.x, origY: rack.y };
+      }
+    } else if (tool === 'MAINTAIN') {
+      cycleStatus(rack.id);
+    } else if (tool === 'DELETE') {
+      setConfirming({ kind: 'delete', rackId: rack.id });
+    }
+  };
+
+  const onRackTouchStart = (e: React.TouchEvent<HTMLDivElement>, rack: Rack) => {
+    if (e.touches.length !== 1) return;
+    e.stopPropagation();
+    const touch = e.touches[0];
+    if (tool === 'SELECT') {
+      setSelectedRackId(rack.id);
+      if (!locked) {
+        draggingRack.current = { id: rack.id, startX: touch.clientX, startY: touch.clientY, origX: rack.x, origY: rack.y };
       }
     } else if (tool === 'MAINTAIN') {
       cycleStatus(rack.id);
@@ -391,7 +478,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
   const selectedRack = selectedRackId ? racks.find(r => r.id === selectedRackId) : null;
 
   const sidebar = (
-    <div className="flex h-full w-full flex-col border-[#b6aa9b] bg-[#ede6dc]">
+    <div className="flex h-full min-h-0 w-full flex-col border-[#b6aa9b] bg-[#ede6dc]">
       {/* Sidebar header */}
           <div className="flex items-center justify-between border-b border-[#b6aa9b] px-5 py-4">
         <div>
@@ -606,7 +693,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
 
       {/* Sticky save bar */}
       {hasUnsaved && (
-        <div className="border-t border-[#c7bcae] bg-[#ece6dd] p-3">
+        <div className="sticky bottom-0 border-t border-[#c7bcae] bg-[#ece6dd] p-3">
           <div className="mb-2 flex items-center gap-2 text-[11px] text-yellow-400">
             <AlertTriangle size={12} /> {newCount} unsaved change{newCount === 1 ? '' : 's'}
           </div>
@@ -630,7 +717,10 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
   );
 
   return (
-    <div className="relative flex h-full w-full overflow-hidden bg-[#ddd7cc]">
+    <div
+      className="relative flex min-h-full w-full overflow-x-hidden overflow-y-auto bg-[#ddd7cc] md:h-full md:overflow-hidden"
+      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
+    >
       {/* Sidebar — desktop, dock left */}
       {!sidebarOnRight && (
         <div
@@ -643,11 +733,11 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
       )}
 
       {/* Main canvas area */}
-      <div className="relative flex h-full flex-1 flex-col">
+      <div className="relative flex min-h-[calc(100dvh-10.5rem)] flex-1 flex-col md:h-full md:min-h-0">
         {/* Top toolbar */}
-        <div className="flex items-center justify-between gap-2 border-b border-[#b6aa9b] bg-[#ede6dc] px-2 py-2">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#b6aa9b] bg-[#ede6dc] px-2 py-2 sm:px-3">
           {/* Tools */}
-          <div className="flex items-center gap-1 rounded-lg bg-[#ddd5c8] p-1">
+          <div className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-[#ddd5c8] p-1">
             <ToolBtn active={tool === 'SELECT'} onClick={() => setTool('SELECT')} icon={<MousePointer size={14} />} label="Select" />
             <ToolBtn active={tool === 'ADD'} onClick={() => setTool('ADD')} icon={<Plus size={14} />} label="Add" />
             <ToolBtn active={tool === 'MAINTAIN'} onClick={() => setTool('MAINTAIN')} icon={<Wrench size={14} />} label="Status" />
@@ -655,7 +745,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
           </div>
 
           {/* View controls */}
-          <div className="flex items-center gap-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-1">
             <IconBtn onClick={zoomOut} icon={<ZoomOut size={14} />} label="Zoom out" />
             <span className="px-2 font-mono text-xs text-[#7d7569]">{Math.round(zoom * 100)}%</span>
             <IconBtn onClick={zoomIn} icon={<ZoomIn size={14} />} label="Zoom in" />
@@ -687,7 +777,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
           </div>
 
           {/* Sidebar reopen + mobile open */}
-          <div className="flex items-center gap-1">
+          <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
             {!sidebarOpen && (
               <button
                 onClick={() => setSidebarOpen(true)}
@@ -709,14 +799,17 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
         {/* Canvas */}
         <div
           ref={canvasRef}
-          className="relative flex-1 overflow-hidden bg-[#ddd7cc]"
+          className="relative min-h-[calc(100dvh-15rem)] flex-1 overflow-hidden bg-[#ddd7cc] md:min-h-0"
           onMouseDown={onCanvasMouseDown}
           onMouseMove={onCanvasMouseMove}
           onMouseUp={onCanvasMouseUp}
           onMouseLeave={onCanvasMouseUp}
+          onTouchStart={onCanvasTouchStart}
+          onTouchMove={onCanvasTouchMove}
+          onTouchEnd={onCanvasTouchEnd}
           onWheel={onWheel}
           data-canvas="true"
-          style={{ cursor: panning.current ? 'grabbing' : tool === 'SELECT' ? 'grab' : 'crosshair' }}
+          style={{ cursor: panning.current ? 'grabbing' : tool === 'SELECT' ? 'grab' : 'crosshair', touchAction: 'none' }}
         >
           {/* Grid background */}
           <div
@@ -759,6 +852,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
                 <div
                   key={rack.id}
                   onMouseDown={e => onRackMouseDown(e, rack)}
+                  onTouchStart={e => onRackTouchStart(e, rack)}
                   className="absolute select-none"
                   style={{
                     left: rack.x,
@@ -807,7 +901,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
           </div>
 
           {/* Footer hint */}
-          <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded bg-[#ede6dc]/92 px-3 py-1 text-[10px] text-[#625a50] backdrop-blur">
+          <div className="pointer-events-none absolute bottom-2 left-1/2 hidden -translate-x-1/2 rounded bg-[#ede6dc]/92 px-3 py-1 text-[10px] text-[#625a50] backdrop-blur sm:block">
             Scroll to zoom · Drag empty space to pan · {locked ? 'Layout locked' : 'Drag racks to move'}
           </div>
         </div>
@@ -826,16 +920,21 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
 
       {/* Mobile bottom sheet */}
       {mobileSheetOpen && (
-        <div className="absolute inset-0 z-40 md:hidden" onClick={() => setMobileSheetOpen(false)}>
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileSheetOpen(false)}>
           <div className="absolute inset-0 bg-[#b8afa3]/35" />
           <div
-            className="absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col rounded-t-2xl bg-[#f4f0e8]"
+            className="absolute bottom-0 left-0 right-0 flex max-h-[88dvh] flex-col rounded-t-2xl bg-[#f4f0e8]"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-center pt-2 pb-1">
               <div className="h-1 w-10 rounded-full bg-[#c7bcae]" />
             </div>
-            <div className="flex-1 overflow-hidden">{sidebar}</div>
+            <div
+              className="flex-1 overflow-y-auto"
+              style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
+            >
+              {sidebar}
+            </div>
           </div>
         </div>
       )}
@@ -895,7 +994,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
 // Helpers
 // =============================================================================
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div className="border-b border-[#c7bcae] p-5">
+  <div className="border-b border-[#c7bcae] p-4 sm:p-5">
     <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-[#8a8174]">{title}</div>
     {children}
   </div>

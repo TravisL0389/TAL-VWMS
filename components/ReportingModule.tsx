@@ -175,7 +175,7 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-[#ddd7cc]">
+    <div className="flex min-h-full flex-col bg-[#ddd7cc] lg:h-full lg:overflow-y-auto">
       {/* Header */}
       <div className="border-b border-[#b6aa9b] bg-[#ede6dc] p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

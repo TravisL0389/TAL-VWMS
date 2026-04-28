@@ -33,7 +33,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex justify-end"
+      onClick={onClose}
+      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
+    >
       <div className="absolute inset-0 bg-[#8f8679]/45" />
       <div
         className="relative flex h-full w-full max-w-md flex-col border-l border-[#b6aa9b] bg-[#ede6dc]"
@@ -84,7 +88,10 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
         )}
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto">
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
+        >
           {notifications.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-8 text-center">
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#ddd5c8] text-[#7d7569]">
