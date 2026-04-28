@@ -79,13 +79,13 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-start justify-center overflow-auto bg-[#ddd7cc] p-4 sm:items-center"
+      className="fixed inset-0 z-[200] flex items-start justify-center overflow-auto bg-[#ddd7cc] p-3 min-[481px]:p-4 sm:items-center"
       style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(93,127,129,0.12)_0%,transparent_50%)]" />
-      <div className="relative my-8 w-full max-w-3xl overflow-hidden rounded-xl border border-[#b6aa9b] bg-[#ede6dc] shadow-2xl">
+      <div className="relative my-4 w-full max-w-4xl overflow-hidden rounded-xl border border-[#b6aa9b] bg-[#ede6dc] shadow-2xl min-[481px]:my-8">
         {/* Header / progress */}
-        <div className="flex items-center justify-between gap-4 border-b border-[#b6aa9b] px-6 py-4 sm:px-8 sm:py-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#b6aa9b] px-4 py-4 min-[481px]:px-6 min-[769px]:px-8 min-[769px]:py-6">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#5d7f81] text-white shadow-lg sm:h-10 sm:w-10">
               <WarehouseIcon size={20} />
@@ -114,7 +114,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
         </div>
 
         {/* Body */}
-        <div className="p-6 sm:p-10 min-h-[420px]">
+        <div className="min-h-[18rem] p-4 min-[481px]:p-6 min-[769px]:min-h-[22rem] min-[769px]:p-8 min-[1025px]:p-10">
           {step === 0 && (
             <div className="space-y-8 animate-in fade-in duration-300">
               <div className="text-center space-y-3">
@@ -196,7 +196,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
               </div>
 
               {/* Industry presets */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2 min-[769px]:grid-cols-3">
                 {INDUSTRY_PRESETS.map(p => (
                   <button
                     key={p.id}
@@ -234,7 +234,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
                   {departments.map((d, idx) => {
                     const Icon = getIcon(d.icon);
                     return (
-                      <div key={idx} className="flex items-center gap-2 rounded border border-[#b6aa9b] bg-[#f1ebe2] p-2">
+                      <div key={idx} className="grid grid-cols-[auto_1fr] gap-2 rounded border border-[#b6aa9b] bg-[#f1ebe2] p-2 min-[481px]:flex min-[481px]:items-center">
                         {/* Color swatch */}
                         <input
                           type="color"
@@ -247,7 +247,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
                         <select
                           value={d.icon}
                           onChange={(e) => updateDept(idx, { icon: e.target.value as IconKey })}
-                          className="w-16 cursor-pointer rounded border border-[#b6aa9b] bg-[#ede6dc] px-2 py-1.5 text-[10px] font-bold text-[#232321] focus:border-[#5d7f81] focus:outline-none"
+                          className="w-full min-[481px]:w-16 cursor-pointer rounded border border-[#b6aa9b] bg-[#ede6dc] px-2 py-1.5 text-[10px] font-bold text-[#232321] focus:border-[#5d7f81] focus:outline-none"
                           title="Pick icon"
                         >
                           {ICON_OPTIONS.map(k => (
@@ -269,7 +269,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
                           onChange={(e) => updateDept(idx, { prefix: e.target.value.toUpperCase().slice(0, 4) })}
                           placeholder="ABC"
                           maxLength={4}
-                          className="w-14 rounded border border-[#b6aa9b] bg-[#ede6dc] px-2 py-1.5 text-[10px] font-black uppercase tracking-wider tabular-nums text-[#232321] focus:border-[#5d7f81] focus:outline-none"
+                          className="w-full min-[481px]:w-14 rounded border border-[#b6aa9b] bg-[#ede6dc] px-2 py-1.5 text-[10px] font-black uppercase tracking-wider tabular-nums text-[#232321] focus:border-[#5d7f81] focus:outline-none"
                           title="3-letter prefix"
                         />
                         {/* Remove */}
@@ -323,7 +323,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
         </div>
 
         {/* Footer / nav */}
-        <div className="flex items-center justify-between gap-3 border-t border-[#b6aa9b] bg-[#ddd5c8] px-6 py-4 sm:px-8 sm:py-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#b6aa9b] bg-[#ddd5c8] px-4 py-4 min-[481px]:px-6 min-[769px]:px-8 min-[769px]:py-5">
           <button
             onClick={() => setStep(s => Math.max(0, s - 1))}
             disabled={step === 0}
@@ -353,7 +353,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
 };
 
 const ReviewRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="flex items-center justify-between gap-4 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] px-4 py-3">
+  <div className="flex flex-col gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] px-4 py-3 min-[481px]:flex-row min-[481px]:items-center min-[481px]:justify-between">
     <span className="text-[9px] font-black uppercase tracking-widest text-[#7d7569]">{label}</span>
     <span className="truncate text-xs font-bold text-[#232321]">{value}</span>
   </div>

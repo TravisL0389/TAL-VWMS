@@ -175,10 +175,10 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
   };
 
   return (
-    <div className="flex min-h-full flex-col bg-[#ddd7cc] lg:h-full lg:overflow-y-auto">
+    <div className="app-page app-page-wide flex min-h-full flex-col gap-6 bg-[#ddd7cc] lg:h-full lg:overflow-y-auto">
       {/* Header */}
-      <div className="border-b border-[#b6aa9b] bg-[#ede6dc] p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-xl border border-[#b6aa9b] bg-[#ede6dc] p-4 min-[481px]:p-5 min-[769px]:p-6">
+        <div className="flex flex-col gap-4 min-[769px]:flex-row min-[769px]:items-center min-[769px]:justify-between">
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest text-[#7d7569]">Analytics</div>
             <h1 className="text-xl font-bold text-[#232321] sm:text-2xl">Reports & Insights</h1>
@@ -202,9 +202,9 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 p-4 sm:p-6">
+      <div className="flex-1 space-y-6">
         {/* KPI cards */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[481px]:grid-cols-2 min-[1025px]:grid-cols-4">
           <Kpi
             icon={<Package size={16} />}
             label="Total Units"
@@ -273,7 +273,7 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
         </Card>
 
         {/* Two-column layout */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 min-[769px]:grid-cols-2">
           {/* By department */}
           <Card title={`By ${settings.departmentLabel}`} right={
             <button
@@ -433,8 +433,8 @@ const Kpi: React.FC<{
 };
 
 const Card: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode }> = ({ title, right, children }) => (
-  <div className="rounded-xl border border-[#b6aa9b] bg-[#ede6dc] p-4 sm:p-5">
-    <div className="mb-4 flex items-center justify-between">
+  <div className="rounded-xl border border-[#b6aa9b] bg-[#ede6dc] p-4 min-[481px]:p-5">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div className="text-[10px] font-black uppercase tracking-widest text-[#7d7569]">{title}</div>
       {right}
     </div>

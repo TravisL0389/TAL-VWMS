@@ -74,8 +74,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   const isEmpty = inventory.length === 0 && racks.length === 0 && orders.length === 0;
 
   return (
-    <div className="space-y-6 px-4 pb-8 pt-4 sm:px-6 sm:pt-5 lg:px-7">
-      <header className="flex flex-col gap-4 border-b border-[#c7bcae] pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="app-page app-page-wide space-y-5 min-[769px]:space-y-6">
+      <header className="flex flex-col gap-4 border-b border-[#c7bcae] pb-4 min-[769px]:flex-row min-[769px]:items-end min-[769px]:justify-between">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-[#232321] tracking-tighter uppercase leading-none">
             {warehouseName}
@@ -116,7 +116,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-3 min-[481px]:grid-cols-2 min-[1025px]:grid-cols-4">
         <StatCard
           title="Total Units"
           value={stats.totalUnits.toLocaleString()}
@@ -147,10 +147,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 min-[1025px]:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)] 2xl:grid-cols-[minmax(0,2.15fr)_minmax(20rem,1fr)]">
         {/* Saturation by department */}
         <div className="rounded-lg border border-[#c7bcae] bg-[#f4f0e8] p-5 sm:p-6 lg:col-span-2">
-          <div className="flex justify-between items-center mb-6">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-[10px] font-black text-[#2b2925] uppercase tracking-widest">Inventory by category</h3>
               <p className="mt-0.5 text-[9px] uppercase tracking-widest text-[#8a8174]">Live unit counts</p>
@@ -221,8 +221,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* AI / heuristic insights */}
       <div className="rounded-lg border border-[#c7bcae] bg-[#f4f0e8] p-5 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Sparkles size={14} className="text-cyan-300" />
             <h3 className="text-[10px] font-black text-[#2b2925] uppercase tracking-widest">
               {insightSource === 'AI' ? 'AI Insights' : 'Auto Insights'}

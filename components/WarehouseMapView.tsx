@@ -504,7 +504,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
       <div className="flex-1 overflow-y-auto">
         {/* Department picker */}
         <Section title={`Active ${settings.departmentLabel}`}>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2">
             {departments.map(d => {
               const Icon = getIcon(d.icon);
               const isActive = d.id === activeDept;
@@ -534,7 +534,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
 
         {/* Creation mode tabs */}
         <Section title="Add Method">
-          <div className="grid grid-cols-3 gap-1 rounded-lg bg-[#ddd5c8] p-1">
+          <div className="grid grid-cols-1 gap-1 rounded-lg bg-[#ddd5c8] p-1 min-[481px]:grid-cols-3">
             {[
               { id: 'SINGLE', label: 'Single' },
               { id: 'ARRAY', label: 'Array' },
@@ -595,7 +595,7 @@ const WarehouseMapView: React.FC<WarehouseMapViewProps> = ({
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2">
                 <NumField label="Rows" value={arrayRows} onChange={setArrayRows} min={1} max={10} />
                 <NumField label="Columns" value={arrayCols} onChange={setArrayCols} min={1} max={10} />
               </div>

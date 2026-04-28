@@ -40,7 +40,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
     >
       <div className="absolute inset-0 bg-[#8f8679]/45" />
       <div
-        className="relative flex h-full w-full max-w-md flex-col border-l border-[#b6aa9b] bg-[#ede6dc]"
+        className="relative flex h-full w-full max-w-[100vw] flex-col border-l border-[#b6aa9b] bg-[#ede6dc] min-[481px]:max-w-md"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -70,7 +70,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
 
         {/* Actions */}
         {notifications.length > 0 && (
-          <div className="flex items-center gap-2 border-b border-[#b6aa9b] px-4 py-2">
+          <div className="flex flex-wrap items-center gap-2 border-b border-[#b6aa9b] px-4 py-2">
             <button
               onClick={markAllRead}
               disabled={unreadCount === 0}
@@ -144,7 +144,7 @@ const NotificationRow: React.FC<{
         </div>
         <button
           onClick={e => { e.stopPropagation(); onDismiss(); }}
-          className="rounded p-1 text-[#8b8378] opacity-0 hover:bg-[#d8cfc2] hover:text-[#232321] group-hover:opacity-100"
+          className="rounded p-1 text-[#8b8378] opacity-100 hover:bg-[#d8cfc2] hover:text-[#232321] min-[769px]:opacity-0 min-[769px]:group-hover:opacity-100"
           aria-label="Dismiss"
         >
           <X size={14} />

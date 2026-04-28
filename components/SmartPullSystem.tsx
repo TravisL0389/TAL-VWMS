@@ -147,8 +147,8 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
   };
 
   return (
-    <div className="flex min-h-full min-w-0 flex-col gap-4 px-4 pb-6 pt-4 sm:px-6 sm:pt-5 lg:h-full lg:min-h-0 lg:px-7">
-      <header className="flex flex-col gap-3 border-b border-[#c7bcae] pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="app-page app-page-wide flex min-h-full min-w-0 flex-col gap-4 lg:h-full lg:min-h-0">
+      <header className="flex flex-col gap-3 border-b border-[#c7bcae] pb-4 min-[769px]:flex-row min-[769px]:items-end min-[769px]:justify-between">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-[#232321] tracking-tighter uppercase leading-none">
             Smart Pull
@@ -174,7 +174,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 min-[1025px]:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)] 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]">
         {/* Order queue */}
         <div className="flex min-w-0 flex-col gap-2 xl:overflow-y-auto xl:pr-1 xl:max-h-full custom-scrollbar">
           <h3 className="px-2 text-[9px] font-black uppercase tracking-[0.2em] text-[#8a8174]">
@@ -430,7 +430,7 @@ const PlanView: React.FC<{
           return (
             <li
               key={`${step.itemId}-${idx}`}
-              className={`p-3 rounded border flex items-center gap-3 transition-all ${
+              className={`flex flex-col gap-3 rounded border p-3 transition-all min-[481px]:flex-row min-[481px]:items-center ${
                 done
                   ? 'bg-green-500/5 border-green-500/30 opacity-60'
                   : 'border-[#c7bcae] bg-[#fbf8f2] hover:border-cyan-700/30'
@@ -467,10 +467,10 @@ const PlanView: React.FC<{
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="text-center hidden sm:block">
+              <div className="flex items-center justify-between gap-3 min-[481px]:shrink-0">
+                <div className="text-left min-[481px]:text-center">
                   <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest">Loc</p>
-                    <p className="mt-0.5 flex items-center gap-1 text-[10px] font-black text-[#232321]">
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] font-black text-[#232321]">
                     <MapPin size={9} className="text-cyan-400" /> {step.rackName}
                   </p>
                   {step.shelf && (
@@ -491,19 +491,19 @@ const PlanView: React.FC<{
         {!pulling ? (
           <button
             onClick={onStartPull}
-            className="flex flex-1 items-center justify-center gap-2 rounded bg-white py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg transition-all hover:bg-cyan-700 hover:text-white active:scale-95"
+            className="flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg transition-all hover:bg-cyan-700 hover:text-white active:scale-95"
           >
             Start picking <ArrowRight size={12} />
           </button>
         ) : (
           <>
-            <p className="flex flex-1 items-center justify-center text-[9px] font-bold uppercase tracking-widest text-[#8a8174]">
+            <p className="flex min-h-[2.75rem] flex-1 items-center justify-center text-[9px] font-bold uppercase tracking-widest text-[#8a8174]">
               {pulledIds.size} of {plan.steps.length} pulled
             </p>
             <button
               onClick={onComplete}
               disabled={!allPulled}
-              className="px-5 py-3 bg-green-600 text-white rounded font-black text-[10px] uppercase tracking-widest hover:bg-green-700 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex min-h-[2.75rem] items-center justify-center gap-2 rounded bg-green-600 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-green-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <CheckCircle2 size={12} /> Complete pull
             </button>
@@ -558,10 +558,10 @@ const OrderEditor: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-6">
+    <div className="fixed inset-0 z-[110] flex items-end justify-center p-0 min-[481px]:p-4 min-[769px]:items-center min-[769px]:p-6">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative w-full max-w-2xl bg-[#0f1113] border border-[#2a2d31] rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in slide-in-from-bottom duration-200">
-        <div className="px-5 py-4 border-b border-[#1a1c1e] bg-[#111315] flex items-center justify-between">
+      <div className="relative flex max-h-[100dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-[#2a2d31] bg-[#0f1113] shadow-2xl animate-in slide-in-from-bottom duration-200 min-[769px]:max-h-[92vh] min-[769px]:rounded-2xl">
+        <div className="flex items-center justify-between border-b border-[#1a1c1e] bg-[#111315] px-4 py-4 min-[481px]:px-5">
           <div className="flex items-center gap-3">
             <ClipboardList size={16} className="text-red-600" />
             <h3 className="text-sm font-black text-white uppercase tracking-tight">{isNew ? 'New order' : 'Edit order'}</h3>
@@ -569,8 +569,8 @@ const OrderEditor: React.FC<{
           <button onClick={onCancel} className="p-1.5 hover:bg-white/5 rounded text-slate-500 transition-all"><X size={18} /></button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4 min-[481px]:p-5">
+          <div className="grid grid-cols-1 gap-3 min-[481px]:grid-cols-2">
             <Field label="Reference *">
               <input type="text" value={draft.reference} onChange={(e) => upd('reference', e.target.value)} className="input-field" />
             </Field>
@@ -595,7 +595,7 @@ const OrderEditor: React.FC<{
             ) : (
               <div className="space-y-1.5 mb-3">
                 {draft.lines.map((line, idx) => (
-                  <div key={`${line.itemId}-${idx}`} className="flex items-center gap-2 bg-[#16181a] border border-[#2a2d31] rounded p-2">
+                  <div key={`${line.itemId}-${idx}`} className="flex flex-wrap items-center gap-2 rounded border border-[#2a2d31] bg-[#16181a] p-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-[11px] font-black text-white truncate">{line.name}</p>
                       <p className="text-[9px] text-slate-600 font-mono">{line.sku}</p>
@@ -648,7 +648,7 @@ const OrderEditor: React.FC<{
           </div>
         </div>
 
-        <div className="p-4 border-t border-[#2d2f31] bg-[#111315] flex items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#2d2f31] bg-[#111315] p-4">
           <button onClick={onCancel} className="px-4 py-2 text-slate-500 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-colors">Cancel</button>
           <button
             onClick={() => onSave(draft)}

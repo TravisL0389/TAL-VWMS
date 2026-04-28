@@ -83,8 +83,8 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8f8679]/65 p-4">
-      <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[#b6aa9b] bg-[#ede6dc]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8f8679]/65 p-3 min-[481px]:p-4">
+      <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-[#b6aa9b] bg-[#ede6dc]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#b6aa9b] px-4 py-3">
           <div className="flex items-center gap-3">
@@ -126,9 +126,9 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
         </div>
 
         {/* Body */}
-        <div className="flex flex-col items-center gap-4 p-6">
+        <div className="flex flex-col items-center gap-4 p-4 min-[481px]:p-6">
           {/* Visual area */}
-          <div className="relative flex h-56 w-full items-center justify-center overflow-hidden rounded-lg border border-[#b6aa9b] bg-[#f1ebe2]">
+          <div className="relative flex h-44 w-full items-center justify-center overflow-hidden rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] min-[481px]:h-56">
             {scanning && !error && (
               <>
                 {mode === 'CAMERA' ? (
@@ -230,7 +230,7 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
           {/* Manual entry */}
           <div className="w-full">
             <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-[#7d7569]">Or enter manually</div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 min-[481px]:flex-row">
               <input
                 type="text"
                 value={manualCode}
@@ -250,7 +250,7 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
           </div>
 
           {/* Action buttons */}
-          <div className="flex w-full gap-2">
+          <div className="flex w-full flex-col gap-2 min-[481px]:flex-row">
             {result ? (
               <>
                 <button

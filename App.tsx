@@ -274,7 +274,7 @@ const App: React.FC = () => {
     >
       {/* Desktop sidebar — left dock */}
       {!sidebarOnRight && (
-        <div className="hidden h-full w-60 shrink-0 lg:block">{sideNav}</div>
+        <div className="hidden h-full w-60 shrink-0 xl:w-64 2xl:w-72 lg:block">{sideNav}</div>
       )}
 
       {/* Mobile drawer */}
@@ -282,7 +282,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setNavOpen(false)}>
           <div className="absolute inset-0 bg-[#8f8679]/40" />
           <div
-            className={`absolute top-0 ${sidebarOnRight ? 'right-0' : 'left-0'} h-full w-72 max-w-[85vw]`}
+            className={`absolute top-0 ${sidebarOnRight ? 'right-0' : 'left-0'} h-full w-[min(18rem,88vw)]`}
             onClick={e => e.stopPropagation()}
           >
             {sideNav}
@@ -291,10 +291,10 @@ const App: React.FC = () => {
       )}
 
       {/* Main column */}
-      <div className="flex min-h-screen flex-1 flex-col lg:h-full lg:min-h-0">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:h-full lg:min-h-0">
         {/* Top bar */}
-        <header className="flex shrink-0 items-center justify-between gap-2 border-b border-[#b6aa9b] bg-[#ede6dc] px-3 py-3 sm:px-4">
-          <div className="flex min-w-0 items-center gap-2">
+        <header className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-[#b6aa9b] bg-[#ede6dc] px-3 py-3 sm:px-4 min-[769px]:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               onClick={() => setNavOpen(true)}
               className="rounded p-2 text-[#7d7569] hover:bg-[#d1c8bb] hover:text-[#2b2925] lg:hidden"
@@ -307,7 +307,7 @@ const App: React.FC = () => {
             <div className="relative min-w-0">
               <button
                 onClick={() => setWhPickerOpen(o => !o)}
-                className="flex max-w-full items-center gap-2 rounded-lg border border-[#bfb2a2] bg-[#ddd5c8] px-3 py-2 text-left transition hover:bg-[#d1c8bb]"
+                className="flex w-full max-w-[min(18rem,70vw)] items-center gap-2 rounded-lg border border-[#bfb2a2] bg-[#ddd5c8] px-3 py-2 text-left transition hover:bg-[#d1c8bb] min-[481px]:w-auto"
               >
                 <Building2 size={14} className="shrink-0 text-[#72695d]" />
                 <div className="min-w-0">
@@ -320,7 +320,7 @@ const App: React.FC = () => {
               {whPickerOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setWhPickerOpen(false)} />
-                  <div className="absolute left-0 top-full z-40 mt-1 w-64 rounded-lg border border-[#b6aa9b] bg-[#ede6dc] p-1 shadow-2xl">
+                  <div className="absolute left-0 top-full z-40 mt-1 w-[min(18rem,calc(100vw-2rem))] rounded-lg border border-[#b6aa9b] bg-[#ede6dc] p-1 shadow-2xl">
                     {store.warehouses.map(wh => (
                       <button
                         key={wh.id}
@@ -356,7 +356,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Right-side icons */}
-          <div className="flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <IconBtn
               onClick={() => setScannerOpen(true)}
               icon={<ScanLine size={16} />}
@@ -445,7 +445,7 @@ const App: React.FC = () => {
 
       {/* Desktop sidebar — right dock */}
       {sidebarOnRight && (
-        <div className="hidden h-full w-60 shrink-0 lg:block">{sideNav}</div>
+        <div className="hidden h-full w-60 shrink-0 xl:w-64 2xl:w-72 lg:block">{sideNav}</div>
       )}
 
       {/* Overlays */}

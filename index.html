@@ -11,6 +11,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --app-page-max: 90rem;
+            --app-page-wide-max: 108rem;
+            --app-pad-x: 1rem;
+            --app-pad-y: 1rem;
+            --app-drawer-width: 32rem;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         html, body {
             min-height: 100%;
             height: auto;
@@ -39,6 +51,25 @@
         }
         .mono, .font-mono {
             font-family: 'JetBrains Mono', monospace;
+        }
+        img, video, canvas, svg {
+            max-width: 100%;
+        }
+        button, input, select, textarea {
+            font: inherit;
+        }
+        .app-page {
+            width: min(100%, var(--app-page-max));
+            margin-inline: auto;
+            padding: var(--app-pad-y) var(--app-pad-x) max(calc(var(--app-pad-y) + env(safe-area-inset-bottom)), 1.5rem);
+        }
+        .app-page-wide {
+            max-width: var(--app-page-wide-max);
+        }
+        .app-scroll-x {
+            overflow-x: auto;
+            overflow-y: hidden;
+            overscroll-behavior-x: contain;
         }
 
         /* Scrollbars */
@@ -92,10 +123,70 @@
             animation: pulse-soft 2s ease-in-out infinite;
         }
 
+        @media (max-width: 480px) {
+            :root {
+                --app-page-max: 100%;
+                --app-page-wide-max: 100%;
+                --app-pad-x: 0.875rem;
+                --app-pad-y: 0.875rem;
+                --app-drawer-width: 100vw;
+            }
+            html {
+                font-size: 15px;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            :root {
+                --app-page-max: 100%;
+                --app-page-wide-max: 100%;
+                --app-pad-x: 1rem;
+                --app-pad-y: 1rem;
+                --app-drawer-width: 34rem;
+            }
+            html {
+                font-size: 15.5px;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            :root {
+                --app-page-max: 100%;
+                --app-page-wide-max: 100%;
+                --app-pad-x: 1.125rem;
+                --app-pad-y: 1.125rem;
+                --app-drawer-width: 34rem;
+            }
+            html {
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            :root {
+                --app-page-max: 92rem;
+                --app-page-wide-max: 110rem;
+                --app-pad-x: 1.5rem;
+                --app-pad-y: 1.5rem;
+            }
+            html {
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 1536px) {
+            :root {
+                --app-page-max: 96rem;
+                --app-page-wide-max: 116rem;
+                --app-pad-x: 2rem;
+                --app-pad-y: 1.75rem;
+            }
+        }
+
         /* Mobile-friendly tap targets */
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             button, a {
-                min-height: 36px;
+                min-height: 40px;
             }
         }
 

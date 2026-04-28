@@ -94,7 +94,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     >
       <div className="absolute inset-0 bg-[#8f8679]/45" />
       <div
-        className="relative flex h-full w-full max-w-xl flex-col border-l border-[#b6aa9b] bg-[#ede6dc]"
+        className="relative flex h-full w-full max-w-[100vw] flex-col border-l border-[#b6aa9b] bg-[#ede6dc] min-[481px]:max-w-xl"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -171,7 +171,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <Section title="Warehouses" icon={<RefreshCw size={14} />}>
             <div className="space-y-2">
               {warehouses.map(wh => (
-                <div key={wh.id} className="flex items-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] p-2">
+                <div key={wh.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] p-2">
                   <input
                     type="text"
                     value={wh.name}
@@ -271,7 +271,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         </div>
                         <div>
                           <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#7d7569]">Icon</div>
-                          <div className="grid grid-cols-8 gap-1">
+                          <div className="grid grid-cols-6 gap-1 min-[481px]:grid-cols-8">
                             {ICON_OPTIONS.map(key => {
                               const I = getIcon(key);
                               return (
@@ -305,7 +305,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           {/* Layout */}
           <Section title="Layout & Display" icon={<PanelLeft size={14} />}>
             <Field label="Sidebar Position">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2">
                 <button
                   onClick={() => updateSetting('sidebarPosition', 'LEFT')}
                   className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition ${
@@ -331,7 +331,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </Field>
 
             <Field label="Density">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2">
                 <button
                   onClick={() => updateSetting('density', 'COMFORTABLE')}
                   className={`rounded-lg border py-2 text-sm font-semibold transition ${

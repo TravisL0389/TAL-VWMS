@@ -160,8 +160,8 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
   };
 
   return (
-    <div className="space-y-4 px-4 pb-8 pt-4 sm:px-6 sm:pt-5 lg:px-7">
-      <header className="flex flex-col gap-3 border-b border-[#b6aa9b] pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="app-page app-page-wide space-y-4">
+      <header className="flex flex-col gap-3 border-b border-[#b6aa9b] pb-4 min-[769px]:flex-row min-[769px]:items-end min-[769px]:justify-between">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-[#232321] tracking-tighter uppercase leading-none">
             {settings.itemLabel}s
@@ -170,7 +170,7 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
             {filtered.length} of {inventory.length} {settings.itemLabel.toLowerCase()}{inventory.length === 1 ? '' : 's'}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-[480px]:grid max-[480px]:grid-cols-1">
           <button
             onClick={handleImport}
             className="flex items-center gap-2 rounded border border-[#b6aa9b] bg-[#ede6dc] px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-[#5d564d] transition-all hover:border-[#5d7f81] hover:bg-[#f1ebe2] hover:text-[#232321]"
@@ -194,8 +194,8 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
 
       <div className="flex flex-col overflow-hidden rounded-lg border border-[#b6aa9b] bg-[#ede6dc] shadow-xl">
         {/* Filter bar */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-[#b6aa9b] bg-[#ddd5c8] px-4 py-3 sm:px-6">
-          <div className="relative flex-1 min-w-[200px] max-w-md group">
+        <div className="grid grid-cols-1 items-center gap-2 border-b border-[#b6aa9b] bg-[#ddd5c8] px-4 py-3 min-[481px]:grid-cols-2 min-[1025px]:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:px-6">
+          <div className="group relative min-w-0 min-[481px]:col-span-2 min-[1025px]:col-span-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#948b7d] transition-colors group-focus-within:text-[#5d7f81]" size={14} />
             <input
               type="text"
@@ -234,7 +234,7 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
         </div>
 
         {/* Table — scrolls horizontally on mobile */}
-        <div className="overflow-x-auto">
+        <div className="app-scroll-x">
           {filtered.length === 0 ? (
             <div className="p-12 text-center">
               <Package size={32} className="mx-auto mb-4 text-[#8a8174]" />
@@ -256,7 +256,7 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
               )}
             </div>
           ) : (
-            <table className="w-full border-collapse min-w-[720px]">
+            <table className="w-full min-w-[44rem] border-collapse">
               <thead>
                 <tr className="border-b border-[#b6aa9b] bg-[#ddd5c8]">
                   <Th>Item</Th>
@@ -385,8 +385,8 @@ const ItemEditor: React.FC<{
   return (
     <>
       <div className="fixed inset-0 z-[100] bg-[#b8afa3]/35 backdrop-blur-sm" onClick={onCancel} />
-      <aside className="fixed inset-y-0 right-0 z-[101] flex w-full animate-in slide-in-from-right flex-col border-l border-[#c7bcae] bg-[#f4f0e8] shadow-2xl duration-200 sm:w-[420px]">
-        <div className="flex items-center justify-between border-b border-[#c7bcae] bg-[#ece6dd] p-5">
+      <aside className="fixed inset-y-0 right-0 z-[101] flex w-full max-w-[100vw] animate-in slide-in-from-right flex-col border-l border-[#c7bcae] bg-[#f4f0e8] shadow-2xl duration-200 min-[481px]:w-[min(32rem,100vw)]">
+        <div className="flex items-center justify-between border-b border-[#c7bcae] bg-[#ece6dd] p-4 min-[481px]:p-5">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[#5d7f81] text-white">
               <Box size={16} />
@@ -403,7 +403,7 @@ const ItemEditor: React.FC<{
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4 min-[481px]:p-5">
           <Field label="Name *">
             <input
               type="text" value={draft.name}
@@ -411,7 +411,7 @@ const ItemEditor: React.FC<{
               className="w-full rounded border border-[#c7bcae] bg-[#fbf8f2] px-3 py-2 text-sm text-[#232321] focus:border-[#5d7f81] focus:outline-none"
             />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[481px]:grid-cols-2">
             <Field label="SKU *">
               <input
                 type="text" value={draft.sku}
@@ -448,7 +448,7 @@ const ItemEditor: React.FC<{
             </select>
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[481px]:grid-cols-2">
             <Field label="Shelf">
               <input
                 type="number" min={1}
@@ -469,7 +469,7 @@ const ItemEditor: React.FC<{
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[481px]:grid-cols-2">
             <Field label="Quantity">
               <input
                 type="number" min={0}
@@ -508,7 +508,7 @@ const ItemEditor: React.FC<{
           </Field>
         </div>
 
-        <div className="flex items-center gap-2 border-t border-[#c7bcae] bg-[#ece6dd] p-4">
+        <div className="flex flex-wrap items-center gap-2 border-t border-[#c7bcae] bg-[#ece6dd] p-4">
           {!isNew && (
             <button
               onClick={onDelete}
