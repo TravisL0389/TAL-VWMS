@@ -175,23 +175,23 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-[#0a0c0e]">
+    <div className="flex h-full flex-col overflow-y-auto bg-[#ddd7cc]">
       {/* Header */}
-      <div className="border-b border-[#2a2d31] bg-[#0f1113] p-4 sm:p-6">
+      <div className="border-b border-[#b6aa9b] bg-[#ede6dc] p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Analytics</div>
-            <h1 className="text-xl font-bold text-white sm:text-2xl">Reports & Insights</h1>
-            <div className="text-xs text-zinc-500">{warehouseName}</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-[#7d7569]">Analytics</div>
+            <h1 className="text-xl font-bold text-[#232321] sm:text-2xl">Reports & Insights</h1>
+            <div className="text-xs text-[#8b8378]">{warehouseName}</div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg bg-[#16181a] p-1">
+            <div className="flex items-center gap-1 rounded-lg bg-[#ddd5c8] p-1">
               {(['7d', '30d', '90d', 'all'] as DateRange[]).map(r => (
                 <button
                   key={r}
                   onClick={() => setRange(r)}
                   className={`rounded px-3 py-1.5 text-xs font-semibold transition ${
-                    range === r ? 'bg-red-600 text-white' : 'text-zinc-400 hover:text-white'
+                    range === r ? 'bg-[#5d7f81] text-white' : 'text-[#625a50] hover:text-[#232321]'
                   }`}
                 >
                   {r === 'all' ? 'All time' : r}
@@ -240,7 +240,7 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
           <button
             onClick={exportOrders}
             disabled={filteredOrders.length === 0}
-            className="flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center gap-1.5 rounded-lg bg-[#5d7f81] px-3 py-1.5 text-xs font-bold text-white transition hover:bg-[#4f7172] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Download size={12} /> Export Orders
           </button>
@@ -256,11 +256,11 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
                 <div key={idx} className="flex flex-1 flex-col items-center gap-2">
                   <div className="relative w-full flex-1">
                     <div
-                      className="absolute bottom-0 left-0 right-0 rounded-t bg-red-600 transition-all"
+                      className="absolute bottom-0 left-0 right-0 rounded-t bg-[#5d7f81] transition-all"
                       style={{ height: `${(t.count / maxTrend) * 100}%`, minHeight: t.count > 0 ? 4 : 0 }}
                     />
                     {t.count > 0 && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 pb-1 text-[10px] font-mono text-white">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 pb-1 text-[10px] font-mono text-[#232321]">
                         {t.count}
                       </div>
                     )}
@@ -278,7 +278,7 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
           <Card title={`By ${settings.departmentLabel}`} right={
             <button
               onClick={exportSummary}
-              className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-800"
+                  className="flex items-center gap-1.5 rounded-lg border border-[#b6aa9b] px-3 py-1.5 text-xs font-semibold text-[#625a50] transition hover:bg-[#d8cfc2]"
             >
               <Download size={12} /> Export
             </button>
@@ -292,19 +292,19 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
                     <div className="mb-1 flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.dept.color }} />
-                        <span className="font-semibold text-white">{d.dept.label}</span>
+                        <span className="font-semibold text-[#232321]">{d.dept.label}</span>
                       </div>
-                      <div className="font-mono text-zinc-400">
+                      <div className="font-mono text-[#8b8378]">
                         {d.units.toLocaleString()} units · {d.utilization.toFixed(0)}%
                       </div>
                     </div>
-                    <div className="h-2 overflow-hidden rounded bg-[#16181a]">
+                    <div className="h-2 overflow-hidden rounded bg-[#ddd5c8]">
                       <div
                         className="h-full rounded transition-all"
                         style={{ width: `${Math.min(100, d.utilization)}%`, backgroundColor: d.dept.color }}
                       />
                     </div>
-                    <div className="mt-1 flex justify-between text-[10px] text-zinc-500">
+                    <div className="mt-1 flex justify-between text-[10px] text-[#8b8378]">
                       <span>{d.items} {settings.itemLabel.toLowerCase()}s</span>
                       <span>{d.orders} order{d.orders === 1 ? '' : 's'} in range</span>
                     </div>
@@ -323,16 +323,16 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
                 {topItems.map((t, i) => {
                   const dept = getDepartmentMeta(t.item.departmentId, departments);
                   return (
-                    <div key={t.item.id} className="flex items-center gap-3 rounded-lg border border-[#2a2d31] bg-[#0f1113] p-2.5">
-                      <div className="w-6 text-center font-mono text-xs text-zinc-500">#{i + 1}</div>
+                    <div key={t.item.id} className="flex items-center gap-3 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] p-2.5">
+                      <div className="w-6 text-center font-mono text-xs text-[#8b8378]">#{i + 1}</div>
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dept.color }} />
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold text-white">{t.item.name}</div>
-                        <div className="font-mono text-[11px] text-zinc-500">{t.item.sku}</div>
+                        <div className="truncate text-sm font-semibold text-[#232321]">{t.item.name}</div>
+                        <div className="font-mono text-[11px] text-[#8b8378]">{t.item.sku}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-mono text-sm font-bold text-white">{t.count}</div>
-                        <div className="text-[10px] text-zinc-500">ordered</div>
+                        <div className="font-mono text-sm font-bold text-[#232321]">{t.count}</div>
+                        <div className="text-[10px] text-[#8b8378]">ordered</div>
                       </div>
                     </div>
                   );
@@ -377,25 +377,25 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <button
               onClick={exportInventory}
-              className="flex items-center justify-center gap-2 rounded-lg border border-[#2a2d31] bg-[#0f1113] py-3 text-sm font-semibold text-white transition hover:border-red-600 hover:bg-[#1a1d20]"
+              className="flex items-center justify-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] py-3 text-sm font-semibold text-[#232321] transition hover:border-[#5d7f81] hover:bg-[#e1d9cd]"
             >
               <Download size={14} /> Inventory CSV
             </button>
             <button
               onClick={exportOrders}
               disabled={filteredOrders.length === 0}
-              className="flex items-center justify-center gap-2 rounded-lg border border-[#2a2d31] bg-[#0f1113] py-3 text-sm font-semibold text-white transition hover:border-red-600 hover:bg-[#1a1d20] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center justify-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] py-3 text-sm font-semibold text-[#232321] transition hover:border-[#5d7f81] hover:bg-[#e1d9cd] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Download size={14} /> Orders CSV
             </button>
             <button
               onClick={exportSummary}
-              className="flex items-center justify-center gap-2 rounded-lg border border-[#2a2d31] bg-[#0f1113] py-3 text-sm font-semibold text-white transition hover:border-red-600 hover:bg-[#1a1d20]"
+              className="flex items-center justify-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] py-3 text-sm font-semibold text-[#232321] transition hover:border-[#5d7f81] hover:bg-[#e1d9cd]"
             >
               <Download size={14} /> Summary CSV
             </button>
           </div>
-          <div className="mt-3 text-[11px] text-zinc-500">
+          <div className="mt-3 text-[11px] text-[#8b8378]">
             CSVs use UTF-8 with comma delimiters. Orders export respects the active date range.
           </div>
         </Card>
@@ -421,21 +421,21 @@ const Kpi: React.FC<{
     danger: 'text-red-400',
   }[tone];
   return (
-    <div className="rounded-xl border border-[#2a2d31] bg-[#0f1113] p-4">
+    <div className="rounded-xl border border-[#b6aa9b] bg-[#f1ebe2] p-4">
       <div className="mb-2 flex items-center justify-between">
-        <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</div>
+        <div className="text-[10px] font-black uppercase tracking-widest text-[#7d7569]">{label}</div>
         <span className={toneClass}>{icon}</span>
       </div>
-      <div className="font-mono text-2xl font-black text-white">{value}</div>
-      <div className="mt-1 text-[11px] text-zinc-500">{sub}</div>
+      <div className="font-mono text-2xl font-black text-[#232321]">{value}</div>
+      <div className="mt-1 text-[11px] text-[#8b8378]">{sub}</div>
     </div>
   );
 };
 
 const Card: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode }> = ({ title, right, children }) => (
-  <div className="rounded-xl border border-[#2a2d31] bg-[#0f1113] p-4 sm:p-5">
+  <div className="rounded-xl border border-[#b6aa9b] bg-[#ede6dc] p-4 sm:p-5">
     <div className="mb-4 flex items-center justify-between">
-      <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{title}</div>
+      <div className="text-[10px] font-black uppercase tracking-widest text-[#7d7569]">{title}</div>
       {right}
     </div>
     {children}
@@ -443,7 +443,7 @@ const Card: React.FC<{ title: string; right?: React.ReactNode; children: React.R
 );
 
 const EmptyMini: React.FC<{ icon: React.ReactNode; message: string }> = ({ icon, message }) => (
-  <div className="flex flex-col items-center justify-center py-8 text-center text-zinc-500">
+  <div className="flex flex-col items-center justify-center py-8 text-center text-[#8b8378]">
     <div className="mb-2">{icon}</div>
     <div className="text-xs">{message}</div>
   </div>
@@ -451,7 +451,7 @@ const EmptyMini: React.FC<{ icon: React.ReactNode; message: string }> = ({ icon,
 
 const StatusTile: React.FC<{ label: string; value: string | number; icon: React.ReactNode; tone: 'default' | 'success' | 'warning' | 'info' }> = ({ label, value, icon, tone }) => {
   const tc = {
-    default: 'text-zinc-400 bg-zinc-800/30',
+    default: 'text-[#625a50] bg-[#ddd5c8]',
     success: 'text-green-400 bg-green-600/10',
     warning: 'text-yellow-400 bg-yellow-600/10',
     info: 'text-blue-400 bg-blue-600/10',

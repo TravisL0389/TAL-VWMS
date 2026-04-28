@@ -178,7 +178,10 @@ const App: React.FC = () => {
   // Render
   // -------------------------------------------------------------------------
   return (
-    <div className="relative flex h-screen w-screen overflow-hidden bg-[#ddd7cc] text-[#2b2925]">
+    <div
+      className="relative flex min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#ddd7cc] text-[#2b2925] lg:h-screen lg:overflow-hidden"
+      style={{ WebkitOverflowScrolling: 'touch' }}
+    >
       {/* Desktop sidebar — left dock */}
       {!sidebarOnRight && (
         <div className="hidden h-full w-60 shrink-0 lg:block">{sideNav}</div>
@@ -198,7 +201,7 @@ const App: React.FC = () => {
       )}
 
       {/* Main column */}
-      <div className="flex h-full flex-1 flex-col">
+      <div className="flex min-h-screen flex-1 flex-col lg:h-full lg:min-h-0">
         {/* Top bar */}
         <header className="flex shrink-0 items-center justify-between gap-2 border-b border-[#b6aa9b] bg-[#ede6dc] px-3 py-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
@@ -284,7 +287,10 @@ const App: React.FC = () => {
         </header>
 
         {/* Main content */}
-        <main className="flex-1 overflow-hidden">
+        <main
+          className="flex-1 overflow-x-hidden overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {tab === 'dashboard' && (
             <Dashboard
               warehouseName={activeWarehouseName}

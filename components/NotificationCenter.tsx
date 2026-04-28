@@ -34,30 +34,30 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-[#8f8679]/45" />
       <div
-        className="relative flex h-full w-full max-w-md flex-col border-l border-[#2a2d31] bg-[#0f1113]"
+        className="relative flex h-full w-full max-w-md flex-col border-l border-[#b6aa9b] bg-[#ede6dc]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#2a2d31] px-4 py-4">
+        <div className="flex items-center justify-between border-b border-[#b6aa9b] px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-600/10 text-red-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#dbe8e8] text-[#5d7f81]">
               <Bell size={18} />
             </div>
             <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Inbox</div>
-              <h2 className="text-lg font-bold text-white">
+              <div className="text-[10px] font-black uppercase tracking-widest text-[#7d7569]">Inbox</div>
+              <h2 className="text-lg font-bold text-[#232321]">
                 Notifications
                 {unreadCount > 0 && (
-                  <span className="ml-2 rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold">{unreadCount}</span>
+                  <span className="ml-2 rounded-full bg-[#5d7f81] px-2 py-0.5 text-[10px] font-bold text-white">{unreadCount}</span>
                 )}
               </h2>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            className="rounded p-2 text-[#7d7569] hover:bg-[#d8cfc2] hover:text-[#232321]"
             aria-label="Close"
           >
             <X size={18} />
@@ -66,17 +66,17 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
 
         {/* Actions */}
         {notifications.length > 0 && (
-          <div className="flex items-center gap-2 border-b border-[#2a2d31] px-4 py-2">
+          <div className="flex items-center gap-2 border-b border-[#b6aa9b] px-4 py-2">
             <button
               onClick={markAllRead}
               disabled={unreadCount === 0}
-              className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-[#625a50] transition hover:bg-[#d8cfc2] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <CheckCheck size={12} /> Mark all read
             </button>
             <button
               onClick={clearAll}
-              className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-800"
+              className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-[#625a50] transition hover:bg-[#d8cfc2]"
             >
               <Trash2 size={12} /> Clear all
             </button>
@@ -87,16 +87,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
         <div className="flex-1 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800 text-zinc-500">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#ddd5c8] text-[#7d7569]">
                 <Bell size={20} />
               </div>
-              <div className="mb-1 text-sm font-semibold text-white">No notifications yet</div>
-              <div className="text-xs text-zinc-500">
+              <div className="mb-1 text-sm font-semibold text-[#232321]">No notifications yet</div>
+              <div className="text-xs text-[#8b8378]">
                 You'll see activity here as you import inventory, build pull plans, and process orders.
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-[#2a2d31]">
+            <div className="divide-y divide-[#cfc4b6]">
               {notifications.map(n => (
                 <NotificationRow key={n.id} notification={n} onDismiss={() => dismiss(n.id)} onClick={() => markRead(n.id)} />
               ))}
@@ -118,7 +118,7 @@ const NotificationRow: React.FC<{
 
   return (
     <div
-      className={`group relative px-4 py-3 transition hover:bg-[#16181a] ${notification.unread ? 'bg-[#16181a]' : ''}`}
+      className={`group relative px-4 py-3 transition hover:bg-[#e1d9cd] ${notification.unread ? 'bg-[#e8dfd3]' : ''}`}
       onClick={onClick}
     >
       <div className="flex gap-3">
@@ -127,17 +127,17 @@ const NotificationRow: React.FC<{
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <div className="text-sm font-semibold text-white">{notification.title}</div>
+            <div className="text-sm font-semibold text-[#232321]">{notification.title}</div>
             {notification.unread && (
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500" aria-label="Unread" />
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#5d7f81]" aria-label="Unread" />
             )}
           </div>
-          <div className="mt-0.5 text-xs text-zinc-400">{notification.message}</div>
-          <div className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">{timeAgo}</div>
+          <div className="mt-0.5 text-xs text-[#625a50]">{notification.message}</div>
+          <div className="mt-1 text-[10px] uppercase tracking-wider text-[#8b8378]">{timeAgo}</div>
         </div>
         <button
           onClick={e => { e.stopPropagation(); onDismiss(); }}
-          className="opacity-0 group-hover:opacity-100 rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white"
+          className="rounded p-1 text-[#8b8378] opacity-0 hover:bg-[#d8cfc2] hover:text-[#232321] group-hover:opacity-100"
           aria-label="Dismiss"
         >
           <X size={14} />
@@ -152,7 +152,7 @@ const TYPE_META: Record<Notification['type'], { icon: React.ReactNode; color: st
   SUCCESS: { icon: <CheckCircle2 size={14} />, color: 'bg-green-600/15 text-green-400' },
   WARNING: { icon: <AlertTriangle size={14} />, color: 'bg-yellow-600/15 text-yellow-400' },
   ERROR: { icon: <AlertCircle size={14} />, color: 'bg-red-600/15 text-red-400' },
-  AI: { icon: <Sparkles size={14} />, color: 'bg-purple-600/15 text-purple-400' },
+  AI: { icon: <Sparkles size={14} />, color: 'bg-[#dbe8e8] text-[#5d7f81]' },
 };
 
 function formatTimeAgo(t: number): string {

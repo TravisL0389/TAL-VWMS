@@ -83,22 +83,22 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-      <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[#2a2d31] bg-[#0f1113]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8f8679]/65 p-4">
+      <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[#b6aa9b] bg-[#ede6dc]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#2a2d31] px-4 py-3">
+        <div className="flex items-center justify-between border-b border-[#b6aa9b] px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-600/10 text-red-500">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#dbe8e8] text-[#5d7f81]">
               <ScanLine size={16} />
             </div>
             <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Scanner</div>
-              <div className="text-sm font-bold text-white">Find Item</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-[#7d7569]">Scanner</div>
+              <div className="text-sm font-bold text-[#232321]">Find Item</div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            className="rounded p-2 text-[#7d7569] hover:bg-[#d8cfc2] hover:text-[#232321]"
             aria-label="Close"
           >
             <X size={16} />
@@ -106,11 +106,11 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
         </div>
 
         {/* Mode toggle */}
-        <div className="flex gap-1 border-b border-[#2a2d31] bg-[#16181a] p-1">
+        <div className="flex gap-1 border-b border-[#b6aa9b] bg-[#ddd5c8] p-1">
           <button
             onClick={() => { setMode('CAMERA'); restart(); }}
             className={`flex flex-1 items-center justify-center gap-2 rounded py-2 text-xs font-semibold transition ${
-              mode === 'CAMERA' ? 'bg-red-600 text-white' : 'text-zinc-400 hover:text-white'
+              mode === 'CAMERA' ? 'bg-[#5d7f81] text-white' : 'text-[#625a50] hover:text-[#232321]'
             }`}
           >
             <Camera size={14} /> Barcode
@@ -118,7 +118,7 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
           <button
             onClick={() => { setMode('RFID'); restart(); }}
             className={`flex flex-1 items-center justify-center gap-2 rounded py-2 text-xs font-semibold transition ${
-              mode === 'RFID' ? 'bg-red-600 text-white' : 'text-zinc-400 hover:text-white'
+              mode === 'RFID' ? 'bg-[#5d7f81] text-white' : 'text-[#625a50] hover:text-[#232321]'
             }`}
           >
             <Radio size={14} /> RFID
@@ -128,22 +128,22 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
         {/* Body */}
         <div className="flex flex-col items-center gap-4 p-6">
           {/* Visual area */}
-          <div className="relative flex h-56 w-full items-center justify-center overflow-hidden rounded-lg border border-[#2a2d31] bg-[#0a0c0e]">
+          <div className="relative flex h-56 w-full items-center justify-center overflow-hidden rounded-lg border border-[#b6aa9b] bg-[#f1ebe2]">
             {scanning && !error && (
               <>
                 {mode === 'CAMERA' ? (
                   <>
-                    <Camera size={48} className="text-zinc-700" />
+                    <Camera size={48} className="text-[#b6aa9b]" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="relative h-32 w-48">
-                        <div className="absolute -left-1 -top-1 h-6 w-6 border-l-4 border-t-4 border-red-500" />
-                        <div className="absolute -right-1 -top-1 h-6 w-6 border-r-4 border-t-4 border-red-500" />
-                        <div className="absolute -left-1 -bottom-1 h-6 w-6 border-b-4 border-l-4 border-red-500" />
-                        <div className="absolute -right-1 -bottom-1 h-6 w-6 border-b-4 border-r-4 border-red-500" />
-                        <div className="absolute left-0 right-0 h-px animate-pulse bg-red-500" style={{ top: '50%' }} />
+                        <div className="absolute -left-1 -top-1 h-6 w-6 border-l-4 border-t-4 border-[#5d7f81]" />
+                        <div className="absolute -right-1 -top-1 h-6 w-6 border-r-4 border-t-4 border-[#5d7f81]" />
+                        <div className="absolute -left-1 -bottom-1 h-6 w-6 border-b-4 border-l-4 border-[#5d7f81]" />
+                        <div className="absolute -right-1 -bottom-1 h-6 w-6 border-b-4 border-r-4 border-[#5d7f81]" />
+                        <div className="absolute left-0 right-0 h-px animate-pulse bg-[#5d7f81]" style={{ top: '50%' }} />
                       </div>
                     </div>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-[10px] uppercase tracking-widest text-white backdrop-blur">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#ede6dc]/95 px-3 py-1 text-[10px] uppercase tracking-widest text-[#232321] backdrop-blur">
                       Aim at barcode
                     </div>
                   </>
@@ -152,19 +152,19 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="relative">
                         <Radio size={48} className="text-red-500" />
-                        <div className="absolute inset-0 -m-2 animate-ping rounded-full border-2 border-red-500/40" />
-                        <div className="absolute inset-0 -m-6 animate-ping rounded-full border-2 border-red-500/20" style={{ animationDelay: '0.3s' }} />
-                        <div className="absolute inset-0 -m-12 animate-ping rounded-full border-2 border-red-500/10" style={{ animationDelay: '0.6s' }} />
+                        <div className="absolute inset-0 -m-2 animate-ping rounded-full border-2 border-[#5d7f81]/40" />
+                        <div className="absolute inset-0 -m-6 animate-ping rounded-full border-2 border-[#5d7f81]/20" style={{ animationDelay: '0.3s' }} />
+                        <div className="absolute inset-0 -m-12 animate-ping rounded-full border-2 border-[#5d7f81]/10" style={{ animationDelay: '0.6s' }} />
                       </div>
                     </div>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-[10px] uppercase tracking-widest text-white backdrop-blur">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#ede6dc]/95 px-3 py-1 text-[10px] uppercase tracking-widest text-[#232321] backdrop-blur">
                       Listening for tags
                     </div>
                   </>
                 )}
-                <div className="absolute top-3 right-3 flex items-center gap-2 rounded bg-black/60 px-2 py-1 text-[10px] backdrop-blur">
-                  <Loader2 size={10} className="animate-spin text-red-400" />
-                  <span className="font-mono uppercase tracking-wider text-zinc-300">Scanning</span>
+                <div className="absolute top-3 right-3 flex items-center gap-2 rounded bg-[#ede6dc]/95 px-2 py-1 text-[10px] backdrop-blur">
+                  <Loader2 size={10} className="animate-spin text-[#5d7f81]" />
+                  <span className="font-mono uppercase tracking-wider text-[#625a50]">Scanning</span>
                 </div>
               </>
             )}
@@ -193,7 +193,7 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
             const dept = getDepartmentMeta(result.departmentId, departments);
             const Icon = getIcon(dept.icon);
             return (
-              <div className="w-full rounded-lg border border-[#2a2d31] bg-[#16181a] p-4">
+              <div className="w-full rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] p-4">
                 <div className="flex items-start gap-3">
                   <span
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded text-white"
@@ -202,15 +202,15 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
                     <Icon size={18} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold text-white">{result.name}</div>
-                    <div className="font-mono text-[11px] text-zinc-500">{result.sku}</div>
+                    <div className="truncate text-sm font-bold text-[#232321]">{result.name}</div>
+                    <div className="font-mono text-[11px] text-[#8b8378]">{result.sku}</div>
                     <div className="mt-1 flex flex-wrap gap-2 text-[10px]">
-                      <span className="rounded bg-[#0f1113] px-2 py-0.5 text-zinc-400">{dept.label}</span>
-                      <span className="rounded bg-[#0f1113] px-2 py-0.5 text-zinc-400">
+                      <span className="rounded bg-[#ede6dc] px-2 py-0.5 text-[#625a50]">{dept.label}</span>
+                      <span className="rounded bg-[#ede6dc] px-2 py-0.5 text-[#625a50]">
                         {result.available}/{result.quantity} avail
                       </span>
                       {result.rackId && (
-                        <span className="rounded bg-[#0f1113] px-2 py-0.5 text-zinc-400 font-mono">
+                        <span className="rounded bg-[#ede6dc] px-2 py-0.5 font-mono text-[#625a50]">
                           {result.rackId}
                         </span>
                       )}
@@ -229,7 +229,7 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
 
           {/* Manual entry */}
           <div className="w-full">
-            <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">Or enter manually</div>
+            <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-[#7d7569]">Or enter manually</div>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -237,12 +237,12 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
                 onChange={e => setManualCode(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && lookupManual()}
                 placeholder="SKU, barcode, or RFID…"
-                className="flex-1 rounded border border-[#2a2d31] bg-[#0f1113] px-3 py-2 text-sm text-white focus:border-red-600 focus:outline-none"
+                className="flex-1 rounded border border-[#b6aa9b] bg-[#f1ebe2] px-3 py-2 text-sm text-[#232321] focus:border-[#5d7f81] focus:outline-none"
               />
               <button
                 onClick={lookupManual}
                 disabled={!manualCode.trim()}
-                className="rounded bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded bg-[#5d7f81] px-4 py-2 text-sm font-bold text-white hover:bg-[#4f7172] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Find
               </button>
@@ -255,13 +255,13 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
               <>
                 <button
                   onClick={restart}
-                  className="flex-1 rounded-lg border border-zinc-700 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800"
+                  className="flex-1 rounded-lg border border-[#b6aa9b] py-2.5 text-sm font-semibold text-[#625a50] hover:bg-[#d8cfc2]"
                 >
                   Scan Another
                 </button>
                 <button
                   onClick={accept}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-500"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#5d7f81] py-2.5 text-sm font-bold text-white hover:bg-[#4f7172]"
                 >
                   <Package size={14} /> Open Item
                 </button>
@@ -269,7 +269,7 @@ const ScannerOverlay: React.FC<ScannerOverlayProps> = ({ inventory, departments,
             ) : (
               <button
                 onClick={restart}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#b6aa9b] py-2.5 text-sm font-semibold text-[#625a50] hover:bg-[#d8cfc2]"
               >
                 {scanning ? 'Cancel & Restart' : 'Try Again'}
               </button>
