@@ -1,20 +1,21 @@
-// =============================================================================
-// Storage helpers — single source of truth for what we persist locally.
-// All keys are namespaced under "vwms." so they don't collide with anything
-// else on the same origin.
-// =============================================================================
+import { logger } from './logger';
 
 export const STORAGE_KEYS = {
   SETUP_DONE: 'vwms.setupDone',
+  ACTIVE_TAB: 'vwms.activeTab',
   SETTINGS: 'vwms.settings',
   WAREHOUSES: 'vwms.warehouses',
   DEPARTMENTS: 'vwms.departments',
   RACKS: 'vwms.racks',          // keyed Record<warehouseId, Rack[]>
+  FLOOR_PLANS: 'vwms.floorPlans', // keyed Record<warehouseId, WarehouseFloorPlan>
   INVENTORY: 'vwms.inventory',   // Record<warehouseId, InventoryItem[]>
   ORDERS: 'vwms.orders',         // Record<warehouseId, Order[]>
   NOTIFICATIONS: 'vwms.notifications',
 } as const;
 
+/**
+ * Safely reads and parses JSON from localStorage.
+ */
 export function loadJSON<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -24,38 +25,54 @@ export function loadJSON<T>(key: string, fallback: T): T {
     if (parsed === null || parsed === undefined) return fallback;
     return parsed as T;
   } catch (err) {
-    console.warn(`[storage] failed to read ${key}:`, err);
+    logger.warn(`Failed to read storage key "${key}"`, err);
     return fallback;
   }
 }
 
+/**
+ * Safely serializes and persists JSON to localStorage.
+ */
 export function saveJSON(key: string, data: unknown): boolean {
   if (typeof window === 'undefined') return false;
   try {
     localStorage.setItem(key, JSON.stringify(data));
     return true;
   } catch (err) {
-    console.warn(`[storage] failed to write ${key}:`, err);
+    logger.warn(`Failed to write storage key "${key}"`, err);
     return false;
   }
 }
 
+/**
+ * Removes a single localStorage key if browser storage is available.
+ */
 export function removeKey(key: string): void {
   try { localStorage.removeItem(key); } catch { /* noop */ }
 }
 
+/**
+ * Clears every VWMS-owned key from localStorage.
+ */
 export function clearAllVWMS(): void {
   try {
     Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
   } catch { /* noop */ }
 }
 
-// Generate a short, readable id like "rk-7a3f"
+/**
+ * Generates a short readable id such as "rk-7a3f".
+ */
 export function shortId(prefix = 'id'): string {
-  return `${prefix}-${Math.random().toString(36).slice(2, 6)}${Date.now().toString(36).slice(-2)}`;
+  const randomPart = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID().slice(0, 6)
+    : Math.random().toString(36).slice(2, 8);
+  return `${prefix}-${randomPart}`;
 }
 
-// Download helper used by export buttons
+/**
+ * Triggers a client-side file download for exported content.
+ */
 export function downloadFile(filename: string, content: string, mime = 'text/plain'): void {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -68,16 +85,20 @@ export function downloadFile(filename: string, content: string, mime = 'text/pla
   URL.revokeObjectURL(url);
 }
 
-// Convert array of plain objects to CSV
-export function toCSV<T extends Record<string, any>>(rows: T[], columns?: (keyof T)[]): string {
+function escapeCsvValue(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const normalized = String(value);
+  const safe = /^[=+\-@]/.test(normalized) ? `'${normalized}` : normalized;
+  return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+}
+
+/**
+ * Converts rows of plain objects to CSV while guarding against spreadsheet formula injection.
+ */
+export function toCSV<T extends Record<string, unknown>>(rows: T[], columns?: (keyof T)[]): string {
   if (rows.length === 0) return '';
   const cols = columns ?? (Object.keys(rows[0]) as (keyof T)[]);
-  const escape = (v: any) => {
-    if (v === null || v === undefined) return '';
-    const s = String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
   const header = cols.join(',');
-  const body = rows.map(r => cols.map(c => escape(r[c])).join(',')).join('\n');
+  const body = rows.map((row) => cols.map((column) => escapeCsvValue(row[column])).join(',')).join('\n');
   return `${header}\n${body}`;
 }

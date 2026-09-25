@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './styles.css';
+import { logger } from './utils/logger';
 import { clearAllVWMS } from './utils/storage';
 
 type ErrorBoundaryState = {
@@ -15,7 +17,7 @@ class RootErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBo
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('[vwms] root render failed', error, info);
+    logger.error('Root render failed', { error, info });
   }
 
   private handleReload = () => {
@@ -96,7 +98,7 @@ class RootErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBo
             {this.state.error.message || 'Unknown runtime error'}
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button
+            <button type="button"
               onClick={this.handleReload}
               style={{
                 border: 'none',
@@ -110,7 +112,7 @@ class RootErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBo
             >
               Reload App
             </button>
-            <button
+            <button type="button"
               onClick={this.handleReset}
               style={{
                 borderRadius: '10px',
@@ -138,9 +140,7 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
-  <React.StrictMode>
-    <RootErrorBoundary>
-      <App />
-    </RootErrorBoundary>
-  </React.StrictMode>,
+  <RootErrorBoundary>
+    <App />
+  </RootErrorBoundary>,
 );

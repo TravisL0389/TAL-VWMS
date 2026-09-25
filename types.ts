@@ -27,6 +27,117 @@ export interface Warehouse {
 
 export type RackStatus = 'OPERATIONAL' | 'MAINTENANCE' | 'OFFLINE';
 
+export type FloorUnit = 'ft' | 'm';
+
+export interface WarehouseFloorDimensions {
+  width: number;
+  depth: number;
+  unit: FloorUnit;
+  gridSize: number;
+}
+
+export type WarehouseObjectType =
+  | 'RACK'
+  | 'PALLET'
+  | 'CONVEYOR'
+  | 'PACK_STATION'
+  | 'FORKLIFT'
+  | 'AMR'
+  | 'CHARGING_STATION'
+  | 'SAFETY_BARRIER'
+  | 'IOT_SENSOR'
+  | 'CAMERA'
+  | 'RFID_ANTENNA'
+  | 'RFID_PORTAL'
+  | 'RFID_READER'
+  | 'ZONE'
+  | 'AISLE'
+  | 'DOCK_DOOR'
+  | 'STAGING'
+  | 'RECEIVING'
+  | 'SHIPPING'
+  | 'OFFICE'
+  | 'RESTRICTED';
+
+export type WarehouseAssetModel =
+  | 'PALLET_RACK'
+  | 'BULK_RACK'
+  | 'SMALL_PARTS_SHELF'
+  | 'CARTON_FLOW_RACK'
+  | 'AUDIO_CASE_RACK'
+  | 'LIGHTING_RACK'
+  | 'VIDEO_EQUIPMENT_RACK'
+  | 'COLD_STORAGE_RACK'
+  | 'EQUIPMENT_BAY'
+  | 'VERTICAL_RACK'
+  | 'SECURE_CAGE'
+  | 'WOOD_PALLET'
+  | 'ROLLER_CONVEYOR'
+  | 'SMART_PACK_BENCH'
+  | 'ELECTRIC_FORKLIFT'
+  | 'AUTONOMOUS_MOBILE_ROBOT'
+  | 'ROBOT_CHARGER'
+  | 'SAFETY_RAIL'
+  | 'ENVIRONMENT_SENSOR'
+  | 'AI_SECURITY_CAMERA'
+  | 'RFID_CEILING_ANTENNA'
+  | 'RFID_DOCK_PORTAL'
+  | 'RFID_READER_HUB';
+
+export type WarehouseAutomationState = 'ACTIVE' | 'IDLE' | 'CHARGING' | 'FAULT';
+
+export type RfidSystemMode = 'AUTO' | 'INTAKE' | 'OUTTAKE' | 'CYCLE_COUNT' | 'MAINTENANCE';
+
+export interface WarehouseRfidSystemState {
+  enabled: boolean;
+  mode: RfidSystemMode;
+  txPower: number;
+  readIntervalMs: number;
+  duplicateWindowMs: number;
+  lastUpdated: number;
+}
+
+export interface WarehouseFloorObject {
+  id: string;
+  warehouseId: string;
+  type: WarehouseObjectType;
+  name: string;
+  departmentId?: string;
+  x: number;
+  y: number;
+  width: number;
+  depth: number;
+  height?: number;
+  rotation?: number;
+  assetModel?: WarehouseAssetModel;
+  shelfLevels?: number;
+  bayCount?: number;
+  loadCount?: number;
+  automationState?: WarehouseAutomationState;
+  sensorRange?: number;
+  rfidEnabled?: boolean;
+  rfidPower?: number;
+  rfidMode?: RfidSystemMode;
+  rfidReaderId?: string;
+  rfidReadRate?: number;
+  color?: string;
+  status?: RackStatus;
+  capacity?: number;
+  occupied?: number;
+  notes?: string;
+  locked?: boolean;
+  isNew?: boolean;
+}
+
+export interface WarehouseFloorPlan {
+  warehouseId: string;
+  dimensions: WarehouseFloorDimensions;
+  objects: WarehouseFloorObject[];
+  rfidSystem: WarehouseRfidSystemState;
+  updatedAt: number;
+  version: number;
+}
+
 export interface Rack {
   id: string;            // unique within warehouse
   name?: string;         // optional friendly name

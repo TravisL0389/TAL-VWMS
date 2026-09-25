@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  BarChart3, Download, Calendar, TrendingUp, TrendingDown, Package,
+  BarChart3, Download, TrendingUp, TrendingDown, Package,
   Activity, AlertTriangle, CheckCircle2, Clock, Filter,
 } from 'lucide-react';
 import type { InventoryItem, Order, Rack, DepartmentDef, AppSettings } from '../types';
@@ -187,7 +187,7 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 rounded-lg bg-[#ddd5c8] p-1">
               {(['7d', '30d', '90d', 'all'] as DateRange[]).map(r => (
-                <button
+                <button type="button"
                   key={r}
                   onClick={() => setRange(r)}
                   className={`rounded px-3 py-1.5 text-xs font-semibold transition ${
@@ -237,7 +237,7 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
 
         {/* Order trend */}
         <Card title="Order Volume" right={
-          <button
+          <button type="button"
             onClick={exportOrders}
             disabled={filteredOrders.length === 0}
             className="flex items-center gap-1.5 rounded-lg bg-[#5d7f81] px-3 py-1.5 text-xs font-bold text-white transition hover:bg-[#4f7172] disabled:cursor-not-allowed disabled:opacity-40"
@@ -276,7 +276,7 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
         <div className="grid grid-cols-1 gap-6 min-[769px]:grid-cols-2">
           {/* By department */}
           <Card title={`By ${settings.departmentLabel}`} right={
-            <button
+            <button type="button"
               onClick={exportSummary}
                   className="flex items-center gap-1.5 rounded-lg border border-[#b6aa9b] px-3 py-1.5 text-xs font-semibold text-[#625a50] transition hover:bg-[#d8cfc2]"
             >
@@ -375,20 +375,20 @@ const ReportingModule: React.FC<ReportingModuleProps> = ({
         {/* Export panel */}
         <Card title="Export Data">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <button
+            <button type="button"
               onClick={exportInventory}
               className="flex items-center justify-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] py-3 text-sm font-semibold text-[#232321] transition hover:border-[#5d7f81] hover:bg-[#e1d9cd]"
             >
               <Download size={14} /> Inventory CSV
             </button>
-            <button
+            <button type="button"
               onClick={exportOrders}
               disabled={filteredOrders.length === 0}
               className="flex items-center justify-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] py-3 text-sm font-semibold text-[#232321] transition hover:border-[#5d7f81] hover:bg-[#e1d9cd] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Download size={14} /> Orders CSV
             </button>
-            <button
+            <button type="button"
               onClick={exportSummary}
               className="flex items-center justify-center gap-2 rounded-lg border border-[#b6aa9b] bg-[#f1ebe2] py-3 text-sm font-semibold text-[#232321] transition hover:border-[#5d7f81] hover:bg-[#e1d9cd]"
             >

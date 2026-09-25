@@ -1,15 +1,17 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Package, ChevronRight, Navigation, ArrowRight, Zap, ClipboardList,
+  Package, Navigation, ArrowRight, ClipboardList,
   Plus, X, Check, Sparkles, Loader2, AlertTriangle, CheckCircle2,
   MapPin, Clock, Hash, RefreshCw, Trash2, Edit3, Box,
 } from 'lucide-react';
 import type {
-  DepartmentDef, InventoryItem, Order, OrderLine, OrderStatus, PullPlan, Rack, AppSettings,
+  DepartmentDef, InventoryItem, Order, PullPlan, Rack, AppSettings,
 } from '../types';
 import { getDepartmentMeta, getIcon } from '../constants';
 import { shortId } from '../utils/storage';
 import { buildAIPlan, buildHeuristicPlan, isAIConfigured } from '../utils/aiService';
+import { sanitizeCompactCode, sanitizeInteger, sanitizeUserText } from '../utils/sanitize';
+import ConfirmationDialog from './ConfirmationDialog';
 
 interface SmartPullSystemProps {
   inventory: InventoryItem[];
@@ -33,6 +35,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
   const [planning, setPlanning] = useState(false);
   const [pulling, setPulling] = useState(false);
   const [pulledIds, setPulledIds] = useState<Set<string>>(new Set());
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const activeOrder = useMemo(() => orders.find(o => o.id === activeOrderId) || null, [orders, activeOrderId]);
 
@@ -106,25 +109,41 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
   };
 
   const handleSaveOrder = (order: Order) => {
-    if (order.lines.length === 0) {
+    const sanitizedOrder: Order = {
+      ...order,
+      reference: sanitizeCompactCode(order.reference),
+      client: sanitizeUserText(order.client ?? '', 120),
+      project: sanitizeUserText(order.project ?? '', 120),
+      lines: order.lines.map((line) => ({
+        ...line,
+        quantity: sanitizeInteger(line.quantity, 1),
+        pulled: sanitizeInteger(line.pulled, 0, line.quantity),
+      })),
+    };
+
+    if (!sanitizedOrder.reference) {
+      onNotify({ type: 'ERROR', title: 'Missing reference', message: 'Reference is required.' });
+      return;
+    }
+    if (sanitizedOrder.lines.length === 0) {
       onNotify({ type: 'ERROR', title: 'Empty order', message: 'Add at least one line item.' });
       return;
     }
-    const exists = orders.find(o => o.id === order.id);
-    setOrders(prev => exists ? prev.map(o => o.id === order.id ? order : o) : [order, ...prev]);
-    onNotify({ type: 'SUCCESS', title: 'Saved', message: `Order ${order.reference} saved.` });
+    const exists = orders.find(o => o.id === sanitizedOrder.id);
+    setOrders(prev => exists ? prev.map(o => o.id === sanitizedOrder.id ? sanitizedOrder : o) : [sanitizedOrder, ...prev]);
+    onNotify({ type: 'SUCCESS', title: 'Saved', message: `Order ${sanitizedOrder.reference} saved.` });
     setEditingOrder(null);
     setCreatingOrder(false);
-    setActiveOrderId(order.id);
+    setActiveOrderId(sanitizedOrder.id);
   };
 
   const handleDeleteOrder = (id: string) => {
     const o = orders.find(x => x.id === id);
     if (!o) return;
-    if (!confirm(`Delete ${o.reference}?`)) return;
     setOrders(prev => prev.filter(x => x.id !== id));
     if (activeOrderId === id) setActiveOrderId(null);
     onNotify({ type: 'INFO', title: 'Deleted', message: `Order ${o.reference} removed.` });
+    setConfirmDeleteId(null);
   };
 
   const startCreate = () => {
@@ -165,7 +184,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
           }`}>
             <Sparkles size={11} className={aiAvailable ? 'animate-pulse' : ''} /> {aiAvailable ? 'AI Ready' : 'Heuristic Mode'}
           </span>
-          <button
+          <button type="button"
             onClick={startCreate}
             className="flex items-center gap-2 rounded bg-cyan-700 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-cyan-600 active:scale-95"
           >
@@ -184,7 +203,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
             <div className="rounded border border-[#c7bcae] bg-[#f4f0e8] p-6 text-center">
               <ClipboardList size={24} className="text-slate-700 mx-auto mb-3" />
               <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#8a8174]">No orders</p>
-              <button
+              <button type="button"
                 onClick={startCreate}
                 className="text-[9px] font-bold text-cyan-300 hover:text-cyan-200 uppercase tracking-widest transition-colors"
               >
@@ -193,7 +212,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
             </div>
           ) : (
             orders.map(order => (
-              <button
+              <button type="button"
                 key={order.id}
                 onClick={() => setActiveOrderId(order.id)}
                 className={`text-left p-4 rounded border transition-all group ${
@@ -260,15 +279,15 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
+                  <button type="button"
                     onClick={() => setEditingOrder(activeOrder)}
                     className="rounded p-2 text-[#8a8174] transition-all hover:bg-[#e5ddd1] hover:text-[#232321]"
                     title="Edit"
                   >
                     <Edit3 size={14} />
                   </button>
-                  <button
-                    onClick={() => handleDeleteOrder(activeOrder.id)}
+                  <button type="button"
+                    onClick={() => setConfirmDeleteId(activeOrder.id)}
                     className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/5 rounded transition-all"
                     title="Delete"
                   >
@@ -321,7 +340,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
                     </div>
 
                     {/* Generate plan button */}
-                    <button
+                    <button type="button"
                       onClick={generatePlan}
                       disabled={planning || activeOrder.lines.length === 0}
                       className="flex w-full items-center justify-center gap-2 rounded bg-cyan-700 py-3.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-cyan-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
@@ -334,7 +353,7 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
                     </button>
                     {!aiAvailable && (
                       <p className="text-center text-[9px] leading-relaxed text-[#8a8174]">
-                        Set <code className="rounded bg-[#ebe4da] px-1 py-0.5 text-[#5d564d]">GEMINI_API_KEY</code> in your env to enable AI optimisation.
+                        Set <code className="rounded bg-[#ebe4da] px-1 py-0.5 text-[#5d564d]">VITE_GEMINI_API_KEY</code> in your env to enable AI optimisation.
                       </p>
                     )}
                   </div>
@@ -347,7 +366,6 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
                     onStartPull={startPull}
                     onComplete={completePull}
                     onRegenerate={generatePlan}
-                    aiAvailable={aiAvailable}
                   />
                 )}
               </div>
@@ -367,6 +385,15 @@ const SmartPullSystem: React.FC<SmartPullSystemProps> = ({
           onCancel={() => { setEditingOrder(null); setCreatingOrder(false); }}
         />
       )}
+      {confirmDeleteId && (
+        <ConfirmationDialog
+          title="Delete order?"
+          message="This will permanently remove the order and any pull progress stored for it in this browser."
+          confirmLabel="Delete order"
+          onConfirm={() => handleDeleteOrder(confirmDeleteId)}
+          onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
     </div>
   );
 };
@@ -382,8 +409,7 @@ const PlanView: React.FC<{
   onStartPull: () => void;
   onComplete: () => void;
   onRegenerate: () => void;
-  aiAvailable: boolean;
-}> = ({ plan, pulling, pulledIds, onTogglePulled, onStartPull, onComplete, onRegenerate, aiAvailable }) => {
+}> = ({ plan, pulling, pulledIds, onTogglePulled, onStartPull, onComplete, onRegenerate }) => {
   const allPulled = plan.steps.length > 0 && plan.steps.every(s => pulledIds.has(s.itemId));
   return (
     <div className="space-y-4">
@@ -397,7 +423,7 @@ const PlanView: React.FC<{
             }`}>
               <Sparkles size={10} /> {plan.generatedBy === 'AI' ? 'AI Optimised' : 'Heuristic Route'}
             </span>
-            <button
+            <button type="button"
               onClick={onRegenerate}
               className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-[#8a8174] transition-colors hover:text-[#232321]"
             >
@@ -436,7 +462,7 @@ const PlanView: React.FC<{
                   : 'border-[#c7bcae] bg-[#fbf8f2] hover:border-cyan-700/30'
               }`}
             >
-              <button
+              <button type="button"
                 onClick={() => pulling && onTogglePulled(step.itemId)}
                 disabled={!pulling}
                 className={`w-9 h-9 rounded flex items-center justify-center font-black text-xs shrink-0 transition-all ${
@@ -489,7 +515,7 @@ const PlanView: React.FC<{
 
       <div className="flex flex-wrap gap-2">
         {!pulling ? (
-          <button
+          <button type="button"
             onClick={onStartPull}
             className="flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg transition-all hover:bg-cyan-700 hover:text-white active:scale-95"
           >
@@ -500,7 +526,7 @@ const PlanView: React.FC<{
             <p className="flex min-h-[2.75rem] flex-1 items-center justify-center text-[9px] font-bold uppercase tracking-widest text-[#8a8174]">
               {pulledIds.size} of {plan.steps.length} pulled
             </p>
-            <button
+            <button type="button"
               onClick={onComplete}
               disabled={!allPulled}
               className="flex min-h-[2.75rem] items-center justify-center gap-2 rounded bg-green-600 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-green-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
@@ -566,7 +592,7 @@ const OrderEditor: React.FC<{
             <ClipboardList size={16} className="text-red-600" />
             <h3 className="text-sm font-black text-white uppercase tracking-tight">{isNew ? 'New order' : 'Edit order'}</h3>
           </div>
-          <button onClick={onCancel} className="p-1.5 hover:bg-white/5 rounded text-slate-500 transition-all"><X size={18} /></button>
+          <button type="button" onClick={onCancel} className="p-1.5 hover:bg-white/5 rounded text-slate-500 transition-all"><X size={18} /></button>
         </div>
 
         <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4 min-[481px]:p-5">
@@ -575,7 +601,7 @@ const OrderEditor: React.FC<{
               <input type="text" value={draft.reference} onChange={(e) => upd('reference', e.target.value)} className="input-field" />
             </Field>
             <Field label="Priority">
-              <select value={draft.priority} onChange={(e) => upd('priority', e.target.value as any)} className="input-field cursor-pointer">
+              <select value={draft.priority} onChange={(e) => upd('priority', e.target.value as Order['priority'])} className="input-field cursor-pointer">
                 <option value="LOW">Low</option><option value="NORMAL">Normal</option><option value="HIGH">High</option><option value="URGENT">Urgent</option>
               </select>
             </Field>
@@ -605,7 +631,7 @@ const OrderEditor: React.FC<{
                       onChange={(e) => updateLine(idx, parseInt(e.target.value) || 1)}
                       className="w-16 bg-[#0a0b0c] border border-[#2a2d31] rounded text-white text-xs px-2 py-1.5 text-center focus:outline-none focus:border-red-600"
                     />
-                    <button onClick={() => removeLine(idx)} className="p-1.5 text-slate-600 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => removeLine(idx)} className="p-1.5 text-slate-600 hover:text-red-500 transition-colors">
                       <X size={14} />
                     </button>
                   </div>
@@ -628,7 +654,7 @@ const OrderEditor: React.FC<{
                     const dept = getDepartmentMeta(item.departmentId, departments);
                     const Icon = getIcon(dept.icon);
                     return (
-                      <button
+                      <button type="button"
                         key={item.id}
                         onClick={() => addLine(item)}
                         className="w-full px-3 py-2 flex items-center gap-2 hover:bg-white/5 transition-colors border-b border-[#1a1c1e] last:border-0 text-left"
@@ -649,8 +675,8 @@ const OrderEditor: React.FC<{
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#2d2f31] bg-[#111315] p-4">
-          <button onClick={onCancel} className="px-4 py-2 text-slate-500 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-colors">Cancel</button>
-          <button
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-slate-500 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-colors">Cancel</button>
+          <button type="button"
             onClick={() => onSave(draft)}
             className="px-5 py-2 bg-red-600 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all flex items-center gap-1.5 shadow-lg"
           >

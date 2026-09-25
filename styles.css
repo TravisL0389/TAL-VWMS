@@ -1,0 +1,263 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --app-page-max: 90rem;
+  --app-page-wide-max: 108rem;
+  --app-pad-x: 1rem;
+  --app-pad-y: 1rem;
+  --app-drawer-width: 32rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  height: auto;
+  margin: 0;
+}
+
+#root {
+  min-height: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #ebe7df;
+  overscroll-behavior-y: auto;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #ebe7df;
+  color: #2b2925;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+}
+
+.mono,
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+[role='button']:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #27869b;
+  outline-offset: 2px;
+}
+
+.app-page {
+  width: min(100%, var(--app-page-max));
+  margin-inline: auto;
+  padding: var(--app-pad-y) var(--app-pad-x) max(calc(var(--app-pad-y) + env(safe-area-inset-bottom)), 1.5rem);
+}
+
+.app-page-wide {
+  max-width: var(--app-page-wide-max);
+}
+
+.app-scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  padding-bottom: 0.125rem;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 1.5rem), transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 1.5rem), transparent 100%);
+  scroll-padding-inline: 0.75rem;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #c7bcae;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #45a3b8;
+}
+
+.input-field {
+  width: 100%;
+  background-color: #f4f0e8;
+  border: 1px solid #c7bcae;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #2b2925;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input-field:focus {
+  border-color: #45a3b8;
+}
+
+.input-field::placeholder {
+  color: #948b7d;
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scan {
+  animation: scan-line 2s linear infinite;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --app-page-max: 100%;
+    --app-page-wide-max: 100%;
+    --app-pad-x: 0.875rem;
+    --app-pad-y: 0.875rem;
+    --app-drawer-width: 100vw;
+  }
+
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --app-page-max: 100%;
+    --app-page-wide-max: 100%;
+    --app-pad-x: 1rem;
+    --app-pad-y: 1rem;
+    --app-drawer-width: 34rem;
+  }
+
+  html {
+    font-size: 15.5px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --app-page-max: 100%;
+    --app-page-wide-max: 100%;
+    --app-pad-x: 1.125rem;
+    --app-pad-y: 1.125rem;
+    --app-drawer-width: 34rem;
+  }
+
+  html {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --app-page-max: 92rem;
+    --app-page-wide-max: 110rem;
+    --app-pad-x: 1.5rem;
+    --app-pad-y: 1.5rem;
+  }
+
+  html {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --app-page-max: 96rem;
+    --app-page-wide-max: 116rem;
+    --app-pad-x: 2rem;
+    --app-pad-y: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  button,
+  a {
+    min-height: 40px;
+  }
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+html[data-platform='ios'] body,
+html[data-platform='android'] body {
+  min-height: 100dvh;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html[data-platform='ios'] input,
+html[data-platform='ios'] textarea,
+html[data-platform='android'] input,
+html[data-platform='android'] textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}

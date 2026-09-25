@@ -59,7 +59,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
               </h2>
             </div>
           </div>
-          <button
+          <button type="button"
             onClick={onClose}
             className="rounded p-2 text-[#7d7569] hover:bg-[#d8cfc2] hover:text-[#232321]"
             aria-label="Close"
@@ -71,14 +71,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ notifications, 
         {/* Actions */}
         {notifications.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-b border-[#b6aa9b] px-4 py-2">
-            <button
+            <button type="button"
               onClick={markAllRead}
               disabled={unreadCount === 0}
               className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-[#625a50] transition hover:bg-[#d8cfc2] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <CheckCheck size={12} /> Mark all read
             </button>
-            <button
+            <button type="button"
               onClick={clearAll}
               className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold text-[#625a50] transition hover:bg-[#d8cfc2]"
             >
@@ -142,7 +142,7 @@ const NotificationRow: React.FC<{
           <div className="mt-0.5 text-xs text-[#625a50]">{notification.message}</div>
           <div className="mt-1 text-[10px] uppercase tracking-wider text-[#8b8378]">{timeAgo}</div>
         </div>
-        <button
+        <button type="button"
           onClick={e => { e.stopPropagation(); onDismiss(); }}
           className="rounded p-1 text-[#8b8378] opacity-100 hover:bg-[#d8cfc2] hover:text-[#232321] min-[769px]:opacity-0 min-[769px]:group-hover:opacity-100"
           aria-label="Dismiss"

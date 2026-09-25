@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
-  Warehouse as WarehouseIcon, ArrowRight, ArrowLeft, Check, Plus, X, Trash2,
+  Warehouse as WarehouseIcon, ArrowRight, ArrowLeft, Check, Plus, Trash2,
   Sparkles, Building2,
 } from 'lucide-react';
 import {
   INDUSTRY_PRESETS, ICON_OPTIONS, getIcon,
 } from '../constants';
 import { shortId } from '../utils/storage';
+import { sanitizeCompactCode, sanitizeUserText } from '../utils/sanitize';
 import type { DepartmentDef, Warehouse, IconKey } from '../types';
 
 interface SetupWizardProps {
@@ -41,7 +42,12 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
   };
 
   const updateDept = (idx: number, patch: Partial<DepartmentDef>) => {
-    setDepartments(prev => prev.map((d, i) => (i === idx ? { ...d, ...patch } : d)));
+    const safePatch: Partial<DepartmentDef> = {
+      ...patch,
+      ...(patch.label !== undefined ? { label: sanitizeUserText(patch.label, 48) || 'Category' } : {}),
+      ...(patch.prefix !== undefined ? { prefix: sanitizeCompactCode(patch.prefix, 4).toUpperCase() || 'NEW' } : {}),
+    };
+    setDepartments(prev => prev.map((d, i) => (i === idx ? { ...d, ...safePatch } : d)));
   };
 
   const addDept = () => {
@@ -64,14 +70,14 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
   const finish = () => {
     const wh: Warehouse = {
       id: shortId('wh'),
-      name: warehouseName.trim() || 'Main Warehouse',
-      location: warehouseLocation.trim(),
+      name: sanitizeUserText(warehouseName, 80) || 'Main Warehouse',
+      location: sanitizeUserText(warehouseLocation, 120),
       createdAt: Date.now(),
     };
     onComplete({
       warehouse: wh,
       departments: departments.length > 0 ? departments : INDUSTRY_PRESETS[0].departments,
-      brandName: brandName.trim() || 'VWMS',
+      brandName: sanitizeUserText(brandName, 64) || 'VWMS',
     });
   };
 
@@ -97,7 +103,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
               </p>
             </div>
           </div>
-          <button
+          <button type="button"
             onClick={onSkip}
             className="rounded border border-transparent px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[#7d7569] transition-colors hover:border-[#b6aa9b] hover:text-[#232321]"
           >
@@ -198,7 +204,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
               {/* Industry presets */}
               <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2 min-[769px]:grid-cols-3">
                 {INDUSTRY_PRESETS.map(p => (
-                  <button
+                  <button type="button"
                     key={p.id}
                     onClick={() => choosePreset(p.id)}
                     className={`p-3 rounded-lg border-2 text-left transition-all ${
@@ -222,7 +228,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
                   <p className="text-[9px] font-black uppercase tracking-widest text-[#7d7569]">
                     Categories ({departments.length})
                   </p>
-                  <button
+                  <button type="button"
                     onClick={addDept}
                     className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-[#5d7f81] transition-colors hover:text-[#4f7172]"
                   >
@@ -232,7 +238,6 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
 
                 <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
                   {departments.map((d, idx) => {
-                    const Icon = getIcon(d.icon);
                     return (
                       <div key={idx} className="grid grid-cols-[auto_1fr] gap-2 rounded border border-[#b6aa9b] bg-[#f1ebe2] p-2 min-[481px]:flex min-[481px]:items-center">
                         {/* Color swatch */}
@@ -273,7 +278,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
                           title="3-letter prefix"
                         />
                         {/* Remove */}
-                        <button
+                        <button type="button"
                           onClick={() => removeDept(idx)}
                           disabled={departments.length <= 1}
                           className="shrink-0 p-1.5 text-[#9a9083] transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-30"
@@ -324,7 +329,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
 
         {/* Footer / nav */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#b6aa9b] bg-[#ddd5c8] px-4 py-4 min-[481px]:px-6 min-[769px]:px-8 min-[769px]:py-5">
-          <button
+          <button type="button"
             onClick={() => setStep(s => Math.max(0, s - 1))}
             disabled={step === 0}
             className="flex items-center gap-2 px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-[#7d7569] transition-colors hover:text-[#232321] disabled:pointer-events-none disabled:opacity-40"
@@ -332,14 +337,14 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onSkip }) => {
             <ArrowLeft size={14} /> Back
           </button>
           {step < stepNames.length - 1 ? (
-            <button
+            <button type="button"
               onClick={() => setStep(s => s + 1)}
               className="flex items-center gap-2 rounded bg-[#5d7f81] px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-[#4f7172] active:scale-95"
             >
               Next <ArrowRight size={14} />
             </button>
           ) : (
-            <button
+            <button type="button"
               onClick={finish}
               className="flex items-center gap-2 rounded bg-[#5d7f81] px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-[#4f7172] active:scale-95"
             >

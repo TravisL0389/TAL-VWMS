@@ -6,14 +6,14 @@ A flexible, deployment-ready warehouse management system built with React, TypeS
 
 - **Setup wizard** — first-run flow with six industry presets and full customization (department names, colors, icons, prefixes).
 - **Inventory manager** — full CRUD, search, filter, low-stock indicators, CSV import & export.
-- **Visual layout builder** — pan-and-zoom warehouse canvas. Place racks individually, in arrays, or with layout templates. Status states (operational / maintenance / offline). Dock the builder panel left or right. Mobile bottom-sheet view.
+- **Visual layout builder** — independently scrolling design tools, scalable floor dimensions, rack and warehouse object templates, placement validation, RFID controls, and R3F/Babylon.js digital-twin previews.
 - **Smart Pull** — order management with AI-powered route planning. Uses Google Gemini (gemini-2.5-flash) when a key is configured; falls back to a deterministic nearest-neighbour planner that runs entirely offline.
 - **Analytics & reports** — real metrics derived from your data: utilization, fulfillment rate, top items, order trend, by-department breakdown. CSV export for inventory, orders, and summary.
 - **Scanner** — simulated barcode and RFID scanning UI. Manual lookup by SKU, barcode, or RFID code.
 - **Notifications & settings** — configurable terminology, brand name, dockable sidebar, light data management.
 - **Local persistence** — all data lives in `localStorage`. No backend required.
-- **Mobile responsive** — bottom-sheet panels, hamburger nav, adaptive grid layouts.
-- **Capacitor-ready** — wrap as an iOS or Android app with `npx cap add ios` after building.
+- **Installable PWA** — application manifest, branded icons, automatic service-worker updates, and an offline application shell.
+- **Native mobile projects** — generated iOS and Android Capacitor projects with status bar, splash screen, network state, haptics, and Android back-button integration.
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ npm install
 
 # 2. (Optional) Configure AI
 cp .env.local.example .env.local
-# Then edit .env.local and add your GEMINI_API_KEY
+# Then edit .env.local and add your VITE_GEMINI_API_KEY
 
 # 3. Run dev server
 npm run dev
@@ -31,7 +31,10 @@ npm run dev
 # 4. Build for production
 npm run build
 
-# 5. Preview the production build
+# 5. Run every release diagnostic
+npm run diagnostics
+
+# 6. Preview the production build
 npm run preview
 ```
 
@@ -53,18 +56,18 @@ Everything you see can be reshaped:
 
 ### Static hosting (Vercel, Netlify, Cloudflare Pages, S3+CloudFront, GitHub Pages)
 
-After `npm run build`, deploy the `dist/` folder. Set the `GEMINI_API_KEY` environment variable in your host's settings if you want AI features. The Vite build inlines it into the bundle at build time.
+After `npm run build`, deploy the `dist/` folder. Set the `VITE_GEMINI_API_KEY` environment variable in your host's settings if you want AI features. The Vite build inlines it into the bundle at build time.
 
 ### Docker
 
 ```dockerfile
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-ARG GEMINI_API_KEY
-ENV GEMINI_API_KEY=$GEMINI_API_KEY
+ARG VITE_GEMINI_API_KEY
+ENV VITE_GEMINI_API_KEY=$VITE_GEMINI_API_KEY
 RUN npm run build
 
 FROM nginx:alpine
@@ -73,34 +76,35 @@ EXPOSE 80
 ```
 
 ```bash
-docker build --build-arg GEMINI_API_KEY=your_key -t vwms .
+docker build --build-arg VITE_GEMINI_API_KEY=your_key -t vwms .
 docker run -p 8080:80 vwms
 ```
 
 ### Mobile (iOS / Android via Capacitor)
 
 ```bash
-npm install @capacitor/core @capacitor/ios @capacitor/android
-npm run build
-npx cap add ios       # or: npx cap add android
-npx cap sync
-npx cap open ios      # opens Xcode
+npm run mobile:doctor
+npm run mobile:sync
+npm run mobile:ios       # syncs and opens Xcode
+npm run mobile:android   # syncs and opens Android Studio
 ```
 
-The app id is set to `com.vwms.app` — change it in `capacitor.config.ts` before publishing.
+The native projects are in `ios/` and `android/`. The application id is `com.langolfenterprises.vwms`; confirm signing, provisioning, store metadata, and the final identifier before publishing.
 
 ## Data & Privacy
 
-All data is stored client-side in `localStorage` under keys prefixed with `vwms.*`. Use Settings → Reset All Data to wipe everything. There is no telemetry, no analytics, and no backend communication other than the optional Gemini API call when AI features are enabled.
+Operational data is currently stored client-side in `localStorage` under keys prefixed with `vwms.*`. Use Settings → Reset All Data to wipe everything. There is no telemetry or analytics. When Gemini is enabled, requests are sent to the configured Google API; production deployments should proxy AI calls through an authenticated server rather than expose a long-lived client key.
 
 ## Tech Stack
 
 - React 19 + TypeScript
 - Vite 6
-- Tailwind CSS (via CDN — no build-time configuration)
+- Tailwind CSS with PostCSS build-time compilation
+- Three.js, React Three Fiber, and Babylon.js
+- Vite PWA and Workbox
 - lucide-react for icons
 - @google/genai for the optional Gemini integration
-- Capacitor for optional native mobile builds
+- Capacitor 8 for iOS and Android builds
 
 ## License
 

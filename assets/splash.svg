@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <rect width="2732" height="2732" fill="#ebe7df"/>
+  <g transform="translate(854 770)">
+    <path d="M160 326 512 136l352 190v376L512 888 160 702Z" fill="#5d7f81"/>
+    <path d="m256 382 256-138 256 138v72L512 592 256 454Z" fill="#45a3b8"/>
+    <path d="M256 494 472 610v170L256 664Zm512 0L552 610v170l216-116Z" fill="#f4f0e8"/>
+    <path d="M300 546h128v54H300Zm296 0h128v54H596ZM300 622h128v54H300Zm296 0h128v54H596Z" fill="#c98a32"/>
+    <circle cx="512" cy="418" r="48" fill="#f4f0e8"/>
+    <path d="M486 418h52M512 392v52" stroke="#2f6f75" stroke-width="22" stroke-linecap="round"/>
+  </g>
+  <text x="1366" y="1800" fill="#2b2925" font-family="Arial, sans-serif" font-size="132" font-weight="700" text-anchor="middle">VWMS</text>
+  <text x="1366" y="1915" fill="#5d7f81" font-family="Arial, sans-serif" font-size="48" font-weight="700" text-anchor="middle">SMART WAREHOUSE</text>
+</svg>

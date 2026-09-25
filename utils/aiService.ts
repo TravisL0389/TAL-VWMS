@@ -3,15 +3,12 @@
 // nearest-neighbour fallback so the app stays useful without an API key.
 // =============================================================================
 import { GoogleGenAI, Type } from '@google/genai';
+import { logger } from './logger';
 import type {
   Order, OrderLine, InventoryItem, Rack, PullPlan, PullStep,
 } from '../types';
 
-// In Vite the value is injected via define(); in other runtimes it may be undefined.
-const apiKey =
-  (typeof process !== 'undefined' && (process as any)?.env?.API_KEY) ||
-  (typeof process !== 'undefined' && (process as any)?.env?.GEMINI_API_KEY) ||
-  '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY ?? '';
 
 let ai: GoogleGenAI | null = null;
 try {
@@ -19,10 +16,59 @@ try {
     ai = new GoogleGenAI({ apiKey });
   }
 } catch (err) {
-  console.warn('[ai] failed to init Gemini:', err);
+  logger.warn('Failed to initialize Gemini client', err);
 }
 
 export const isAIConfigured = (): boolean => ai !== null;
+
+interface GeminiTextResponse {
+  text?: string;
+}
+
+interface PlannerReasoning {
+  itemId: string;
+  reasoning: string;
+}
+
+interface PlannerPayload {
+  orderedItemIds?: string[];
+  perStepReasoning?: PlannerReasoning[];
+  overallNotes?: string;
+  anomalies?: string[];
+}
+
+interface InventoryInsightPayload {
+  insights?: Array<{
+    level?: string;
+    message?: string;
+  }>;
+}
+
+const insightCache = new Map<string, InventoryInsight[]>();
+
+function extractResponseText(response: unknown): string {
+  return typeof response === 'object' && response !== null && 'text' in response
+    ? String((response as GeminiTextResponse).text ?? '')
+    : '';
+}
+
+function parsePlannerPayload(raw: string): PlannerPayload | null {
+  try {
+    const parsed = JSON.parse(raw) as PlannerPayload;
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseInsightsPayload(raw: string): InventoryInsightPayload | null {
+  try {
+    const parsed = JSON.parse(raw) as InventoryInsightPayload;
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Heuristic planner — used when AI is off, missing, or fails.
@@ -196,14 +242,16 @@ Data:\n${JSON.stringify(summary, null, 2)}`;
       },
     });
 
-    const text = (response as any).text ?? '';
-    const parsed = JSON.parse(text);
+    const parsed = parsePlannerPayload(extractResponseText(response));
+    if (!parsed?.orderedItemIds) {
+      return baseline;
+    }
     const reasoningById: Record<string, string> = {};
-    for (const r of (parsed.perStepReasoning ?? [])) {
+    for (const r of parsed.perStepReasoning ?? []) {
       reasoningById[r.itemId] = r.reasoning;
     }
 
-    const orderedIds: string[] = parsed.orderedItemIds || [];
+    const orderedIds = parsed.orderedItemIds;
     const stepMap = new Map(baseline.steps.map(s => [s.itemId, s]));
     const reordered: PullStep[] = [];
     for (const id of orderedIds) {
@@ -225,7 +273,7 @@ Data:\n${JSON.stringify(summary, null, 2)}`;
       generatedAt: Date.now(),
     };
   } catch (err) {
-    console.warn('[ai] planner fell back to heuristic:', err);
+    logger.warn('AI planner fell back to heuristic mode', err);
     return baseline;
   }
 }
@@ -253,6 +301,16 @@ export function localInsights(inventory: InventoryItem[]): InventoryInsight[] {
 export async function aiInsights(inventory: InventoryItem[]): Promise<InventoryInsight[]> {
   const baseline = localInsights(inventory);
   if (!ai || inventory.length === 0) return baseline;
+  const cacheKey = JSON.stringify(inventory.slice(0, 200).map((item) => ({
+    sku: item.sku,
+    quantity: item.quantity,
+    available: item.available,
+    status: item.status,
+  })));
+  const cached = insightCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
   try {
     const compact = inventory.slice(0, 200).map(i => ({
       sku: i.sku, name: i.name, qty: i.quantity, avail: i.available, status: i.status,
@@ -279,15 +337,19 @@ export async function aiInsights(inventory: InventoryItem[]): Promise<InventoryI
         },
       },
     });
-    const text = (response as any).text ?? '';
-    const parsed = JSON.parse(text);
-    const items: InventoryInsight[] = (parsed.insights || []).map((x: any) => ({
-      level: ['INFO', 'WARN', 'CRITICAL'].includes(x.level) ? x.level : 'INFO',
-      message: String(x.message || ''),
-    })).filter((x: InventoryInsight) => x.message);
-    return items.length ? items : baseline;
+    const parsed = parseInsightsPayload(extractResponseText(response));
+    const items: InventoryInsight[] = (parsed?.insights ?? []).map((entry) => {
+      const level: InventoryInsight['level'] = entry.level === 'WARN' || entry.level === 'CRITICAL' ? entry.level : 'INFO';
+      return {
+        level,
+        message: String(entry.message ?? '').trim(),
+      };
+    }).filter((entry) => entry.message.length > 0);
+    const resolved = items.length ? items : baseline;
+    insightCache.set(cacheKey, resolved);
+    return resolved;
   } catch (err) {
-    console.warn('[ai] insights fell back to heuristic:', err);
+    logger.warn('AI insights fell back to heuristic mode', err);
     return baseline;
   }
 }

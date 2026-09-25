@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Search, Plus, Filter, Download, Upload, MoreVertical, Package, X, Edit3,
-  Trash2, Save, AlertCircle, CheckCircle2, Box, MapPin,
+  Search, Plus, Download, Upload, Package, X, Edit3,
+  Trash2, Save, Box, MapPin,
 } from 'lucide-react';
 import type { DepartmentDef, InventoryItem, ItemStatus, Rack, AppSettings } from '../types';
 import { getDepartmentMeta, getIcon } from '../constants';
 import { shortId, downloadFile, toCSV } from '../utils/storage';
+import { sanitizeCompactCode, sanitizeInteger, sanitizeUserNotes, sanitizeUserText } from '../utils/sanitize';
+import ConfirmationDialog from './ConfirmationDialog';
 
 interface InventoryManagerProps {
   inventory: InventoryItem[];
@@ -27,6 +29,7 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
   const [filterStatus, setFilterStatus] = useState<ItemStatus | 'ALL'>('ALL');
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [creatingNew, setCreatingNew] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return inventory.filter(i => {
@@ -45,27 +48,44 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
   }, [inventory, search, filterDept, filterStatus]);
 
   const handleSave = (item: InventoryItem) => {
-    if (!item.name.trim() || !item.sku.trim()) {
+    const sanitizedItem: InventoryItem = {
+      ...item,
+      name: sanitizeUserText(item.name),
+      sku: sanitizeCompactCode(item.sku),
+      barcode: sanitizeCompactCode(item.barcode ?? ''),
+      rfid: sanitizeCompactCode(item.rfid ?? ''),
+      quantity: sanitizeInteger(item.quantity),
+      available: sanitizeInteger(item.available, 0, item.quantity),
+      notes: sanitizeUserNotes(item.notes ?? ''),
+    };
+
+    if (!sanitizedItem.name || !sanitizedItem.sku) {
       onNotify({ type: 'ERROR', title: 'Missing fields', message: 'Name and SKU are required.' });
       return;
     }
     setInventory(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) return prev.map(i => (i.id === item.id ? { ...item, lastUpdated: Date.now() } : i));
-      return [...prev, { ...item, lastUpdated: Date.now() }];
+      const existing = prev.find(i => i.id === sanitizedItem.id);
+      if (existing) return prev.map(i => (i.id === sanitizedItem.id ? { ...sanitizedItem, lastUpdated: Date.now() } : i));
+      return [...prev, { ...sanitizedItem, lastUpdated: Date.now() }];
     });
-    onNotify({ type: 'SUCCESS', title: 'Saved', message: `"${item.name}" updated.` });
+    onNotify({ type: 'SUCCESS', title: 'Saved', message: `"${sanitizedItem.name}" updated.` });
     setEditing(null);
     setCreatingNew(false);
+  };
+
+  const requestDelete = (id: string) => {
+    const item = inventory.find(i => i.id === id);
+    if (!item) return;
+    setConfirmDeleteId(id);
   };
 
   const handleDelete = (id: string) => {
     const item = inventory.find(i => i.id === id);
     if (!item) return;
-    if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
     setInventory(prev => prev.filter(i => i.id !== id));
     onNotify({ type: 'INFO', title: 'Deleted', message: `Removed "${item.name}".` });
     if (editing?.id === id) setEditing(null);
+    setConfirmDeleteId(null);
   };
 
   const startCreate = () => {
@@ -133,20 +153,22 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
           if (!sku || !name) continue;
           const deptLabel = cols[idx('department')] || '';
           const dept = departments.find(d => d.label.toLowerCase() === deptLabel.toLowerCase()) || departments[0];
+          if (!dept) continue;
           imported.push({
             id: shortId('item'),
-            sku,
-            name,
-            barcode: cols[idx('barcode')] || '',
+            sku: sanitizeCompactCode(sku),
+            name: sanitizeUserText(name),
+            barcode: sanitizeCompactCode(cols[idx('barcode')] || ''),
             rfid: '',
             departmentId: dept.id,
             warehouseId,
-            rackId: cols[idx('rack')] || undefined,
-            shelf: parseInt(cols[idx('shelf')] || '1') || 1,
+            rackId: sanitizeCompactCode(cols[idx('rack')] || '') || undefined,
+            shelf: sanitizeInteger(parseInt(cols[idx('shelf')] || '1', 10) || 1, 1),
             position: (cols[idx('position')] === 'BACK' ? 'BACK' : 'FRONT'),
-            quantity: parseInt(cols[idx('quantity')] || '0') || 0,
-            available: parseInt(cols[idx('available')] || '0') || 0,
+            quantity: sanitizeInteger(parseInt(cols[idx('quantity')] || '0', 10) || 0),
+            available: sanitizeInteger(parseInt(cols[idx('available')] || '0', 10) || 0),
             status: (STATUS_OPTIONS as string[]).includes(cols[idx('status')]) ? (cols[idx('status')] as ItemStatus) : 'AVAILABLE',
+            notes: '',
             lastUpdated: Date.now(),
           });
         }
@@ -171,19 +193,19 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
           </p>
         </div>
         <div className="flex flex-wrap gap-2 max-[480px]:grid max-[480px]:grid-cols-1">
-          <button
+          <button type="button"
             onClick={handleImport}
             className="flex items-center gap-2 rounded border border-[#b6aa9b] bg-[#ede6dc] px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-[#5d564d] transition-all hover:border-[#5d7f81] hover:bg-[#f1ebe2] hover:text-[#232321]"
           >
             <Upload size={12} /> Import
           </button>
-          <button
+          <button type="button"
             onClick={handleExport}
             className="flex items-center gap-2 rounded border border-[#c7bcae] bg-[#f4f0e8] px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-[#5d564d] transition-all hover:border-[#5d7f81] hover:bg-[#fbf8f2] hover:text-[#232321]"
           >
             <Download size={12} /> Export
           </button>
-          <button
+          <button type="button"
             onClick={startCreate}
             className="flex items-center gap-2 rounded bg-[#5d7f81] px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-[#4f7172] active:scale-95"
           >
@@ -217,14 +239,14 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
           </select>
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as any)}
+            onChange={(e) => setFilterStatus(e.target.value === 'ALL' ? 'ALL' : (e.target.value as ItemStatus))}
             className="cursor-pointer rounded border border-[#c7bcae] bg-[#fbf8f2] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#232321] focus:border-[#5d7f81] focus:outline-none"
           >
             <option value="ALL">All status</option>
             {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
           </select>
           {(search || filterDept !== 'ALL' || filterStatus !== 'ALL') && (
-            <button
+            <button type="button"
               onClick={() => { setSearch(''); setFilterDept('ALL'); setFilterStatus('ALL'); }}
               className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest text-[#7d7569] transition-colors hover:text-[#232321]"
             >
@@ -247,7 +269,7 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
                   : 'Try changing your filters.'}
               </p>
               {inventory.length === 0 && (
-                <button
+                <button type="button"
                   onClick={startCreate}
                   className="inline-flex items-center gap-2 rounded bg-[#5d7f81] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-[#4f7172]"
                 >
@@ -326,7 +348,7 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
                         </span>
                       </td>
                       <td className="px-2 py-3 text-right">
-                        <button
+                        <button type="button"
                           onClick={(e) => { e.stopPropagation(); setEditing(item); }}
                           className="p-1.5 text-[#8a8174] transition-colors hover:text-[#232321]"
                           title="Edit"
@@ -352,7 +374,16 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
           isNew={creatingNew}
           onSave={handleSave}
           onCancel={() => { setEditing(null); setCreatingNew(false); }}
-          onDelete={() => handleDelete(editing.id)}
+          onRequestDelete={() => requestDelete(editing.id)}
+        />
+      )}
+      {confirmDeleteId && (
+        <ConfirmationDialog
+          title="Delete inventory item?"
+          message="This will permanently remove the item from local warehouse records."
+          confirmLabel="Delete item"
+          onConfirm={() => handleDelete(confirmDeleteId)}
+          onCancel={() => setConfirmDeleteId(null)}
         />
       )}
     </div>
@@ -360,7 +391,7 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({
 };
 
 const Th: React.FC<{ children: React.ReactNode; align?: 'left' | 'center' | 'right' }> = ({ children, align = 'left' }) => (
-  <th className={`px-4 py-3 text-${align} text-[8px] font-black uppercase tracking-[0.2em] text-[#7d7569]`}>
+  <th className={`px-4 py-3 ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'} text-[8px] font-black uppercase tracking-[0.2em] text-[#7d7569]`}>
     {children}
   </th>
 );
@@ -375,8 +406,8 @@ const ItemEditor: React.FC<{
   isNew: boolean;
   onSave: (item: InventoryItem) => void;
   onCancel: () => void;
-  onDelete: () => void;
-}> = ({ item, departments, racks, isNew, onSave, onCancel, onDelete }) => {
+  onRequestDelete: () => void;
+}> = ({ item, departments, racks, isNew, onSave, onCancel, onRequestDelete }) => {
   const [draft, setDraft] = useState<InventoryItem>(item);
 
   const upd = <K extends keyof InventoryItem>(k: K, v: InventoryItem[K]) =>
@@ -398,7 +429,7 @@ const ItemEditor: React.FC<{
               <p className="mt-1 text-[8px] font-black uppercase tracking-widest text-[#8a8174]">{draft.sku || '—'}</p>
             </div>
           </div>
-          <button onClick={onCancel} className="rounded p-1.5 text-[#8a8174] transition-all hover:bg-[#e7e0d6]">
+          <button type="button" onClick={onCancel} className="rounded p-1.5 text-[#8a8174] transition-all hover:bg-[#e7e0d6]">
             <X size={18} />
           </button>
         </div>
@@ -460,7 +491,7 @@ const ItemEditor: React.FC<{
             <Field label="Position">
               <select
                 value={draft.position || 'FRONT'}
-                onChange={(e) => upd('position', e.target.value as any)}
+                onChange={(e) => upd('position', e.target.value === 'BACK' ? 'BACK' : 'FRONT')}
                 className="w-full cursor-pointer rounded border border-[#c7bcae] bg-[#fbf8f2] px-3 py-2 text-sm text-[#232321] focus:border-[#5d7f81] focus:outline-none"
               >
                 <option value="FRONT">Front</option>
@@ -510,20 +541,20 @@ const ItemEditor: React.FC<{
 
         <div className="flex flex-wrap items-center gap-2 border-t border-[#c7bcae] bg-[#ece6dd] p-4">
           {!isNew && (
-            <button
-              onClick={onDelete}
+            <button type="button"
+              onClick={onRequestDelete}
               className="px-3 py-2 bg-transparent border border-red-600/30 text-red-500 hover:bg-red-600/10 rounded text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
             >
               <Trash2 size={12} /> Delete
             </button>
           )}
-          <button
+          <button type="button"
             onClick={onCancel}
             className="ml-auto bg-transparent px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-[#8a8174] transition-colors hover:text-[#232321]"
           >
             Cancel
           </button>
-          <button
+          <button type="button"
             onClick={() => onSave(draft)}
             className="flex items-center gap-1.5 rounded bg-[#5d7f81] px-5 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-[#4f7172] active:scale-95"
           >

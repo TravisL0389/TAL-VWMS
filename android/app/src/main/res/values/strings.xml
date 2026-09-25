@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">VWMS Smart Warehouse</string>
+    <string name="title_activity_main">VWMS Smart Warehouse</string>
+    <string name="package_name">com.langolfenterprises.vwms</string>
+    <string name="custom_url_scheme">com.langolfenterprises.vwms</string>
+</resources>

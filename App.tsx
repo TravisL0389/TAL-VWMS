@@ -1,23 +1,25 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useCallback, useEffect, useRef } from 'react';
 import {
   LayoutGrid, Package, Map as MapIcon, ClipboardList, BarChart3,
   Settings as SettingsIcon, Bell, ScanLine, Menu, X,
-  Plus, Building2, ChevronDown, Sparkles,
+  Plus, Building2, ChevronDown, Sparkles, WifiOff,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useDataStore } from './utils/dataStore';
 import { isAIConfigured } from './utils/aiService';
-import { clearAllVWMS, shortId } from './utils/storage';
-import type { Warehouse } from './types';
+import { STORAGE_KEYS, clearAllVWMS, loadJSON, saveJSON, shortId } from './utils/storage';
+import { initializePlatform } from './utils/platform';
+import type { Notification, Warehouse } from './types';
 
 import SetupWizard from './components/SetupWizard';
-import Dashboard from './components/Dashboard';
-import InventoryManager from './components/InventoryManager';
-import WarehouseMapView from './components/WarehouseMapView';
-import SmartPullSystem from './components/SmartPullSystem';
-import ReportingModule from './components/ReportingModule';
-import ScannerOverlay from './components/ScannerOverlay';
-import NotificationCenter from './components/NotificationCenter';
-import SettingsPanel from './components/SettingsPanel';
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const InventoryManager = lazy(() => import('./components/InventoryManager'));
+const WarehouseMapView = lazy(() => import('./components/warehouse-designer/WarehouseDesigner'));
+const SmartPullSystem = lazy(() => import('./components/SmartPullSystem'));
+const ReportingModule = lazy(() => import('./components/ReportingModule'));
+const ScannerOverlay = lazy(() => import('./components/ScannerOverlay'));
+const NotificationCenter = lazy(() => import('./components/NotificationCenter'));
+const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 
 // =============================================================================
 // App — top-level shell.
@@ -29,7 +31,7 @@ import SettingsPanel from './components/SettingsPanel';
 
 type Tab = 'dashboard' | 'inventory' | 'map' | 'pull' | 'analytics';
 
-const NAV: { id: Tab; label: string; icon: React.ElementType }[] = [
+const NAV: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
   { id: 'inventory', label: 'Inventory', icon: Package },
   { id: 'map',       label: 'Layout',    icon: MapIcon },
@@ -37,14 +39,37 @@ const NAV: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'analytics', label: 'Reports',   icon: BarChart3 },
 ];
 
+const VALID_TABS = new Set<Tab>(NAV.map(item => item.id));
+
+function loadInitialTab(): Tab {
+  const storedTab = loadJSON<unknown>(STORAGE_KEYS.ACTIVE_TAB, 'dashboard');
+  return typeof storedTab === 'string' && VALID_TABS.has(storedTab as Tab)
+    ? storedTab as Tab
+    : 'dashboard';
+}
+
+type ToastState = Pick<Notification, 'type' | 'title' | 'message'>;
+
+const LoadingState: React.FC<{ label?: string }> = ({ label = 'Loading workspace' }) => (
+  <div className="flex min-h-[16rem] items-center justify-center px-4 py-8">
+    <div className="rounded-xl border border-[#b6aa9b] bg-[#ede6dc] px-5 py-4 text-center shadow-lg">
+      <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#7d7569]">{label}</div>
+      <div className="mt-2 text-sm text-[#5d564d]">Preparing the next screen…</div>
+    </div>
+  </div>
+);
+
 const App: React.FC = () => {
   const store = useDataStore();
-  const [tab, setTab] = useState<Tab>('dashboard');
+  const [tab, setTab] = useState<Tab>(loadInitialTab);
   const [navOpen, setNavOpen] = useState(false);          // mobile nav drawer
   const [scannerOpen, setScannerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [whPickerOpen, setWhPickerOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
   const sidebarOnRight = store.settings.sidebarPosition === 'RIGHT';
 
@@ -138,6 +163,74 @@ const App: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    saveJSON(STORAGE_KEYS.ACTIVE_TAB, tab);
+  }, [tab]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  const handleBackAction = useCallback(() => {
+    if (settingsOpen) {
+      setSettingsOpen(false);
+      return true;
+    }
+    if (scannerOpen) {
+      setScannerOpen(false);
+      return true;
+    }
+    if (notifOpen) {
+      setNotifOpen(false);
+      return true;
+    }
+    if (whPickerOpen) {
+      setWhPickerOpen(false);
+      return true;
+    }
+    if (navOpen) {
+      setNavOpen(false);
+      return true;
+    }
+
+    const nestedBack = new Event('vwms:back', { cancelable: true });
+    window.dispatchEvent(nestedBack);
+    if (nestedBack.defaultPrevented) return true;
+
+    if (tab !== 'dashboard') {
+      setTab('dashboard');
+      return true;
+    }
+    return false;
+  }, [navOpen, notifOpen, scannerOpen, settingsOpen, tab, whPickerOpen]);
+
+  useEffect(() => {
+    let disposed = false;
+    let disposePlatform = () => undefined;
+    void initializePlatform({
+      onBack: handleBackAction,
+      onNetworkChange: setIsOnline,
+    }).then(dispose => {
+      if (disposed) dispose();
+      else disposePlatform = dispose;
+    });
+
+    return () => {
+      disposed = true;
+      disposePlatform();
+    };
+  }, [handleBackAction]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && handleBackAction()) event.preventDefault();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleBackAction]);
+
   // -------------------------------------------------------------------------
   // Handlers
   // -------------------------------------------------------------------------
@@ -150,6 +243,17 @@ const App: React.FC = () => {
     window.location.reload();
   }, []);
 
+  const notify = useCallback((notification: Omit<Notification, 'id' | 'time' | 'unread'> & Partial<Pick<Notification, 'unread'>>) => {
+    store.pushNotification(notification);
+    setToast({
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+    });
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 3600);
+  }, [store]);
+
   const addWarehouse = useCallback(() => {
     const wh: Warehouse = {
       id: shortId('wh'),
@@ -160,7 +264,18 @@ const App: React.FC = () => {
     store.setWarehouses(prev => [...prev, wh]);
     store.setSettings(s => ({ ...s, warehouseId: wh.id }));
     setWhPickerOpen(false);
-    store.pushNotification({ type: 'INFO', title: 'Warehouse created', message: wh.name });
+    notify({ type: 'INFO', title: 'Warehouse created', message: wh.name });
+  }, [notify, store]);
+
+  const enterWarehouseExperience = useCallback(() => {
+    saveJSON(STORAGE_KEYS.ACTIVE_TAB, 'map');
+    setTab('map');
+    setNavOpen(false);
+    setScannerOpen(false);
+    setNotifOpen(false);
+    setSettingsOpen(false);
+    setWhPickerOpen(false);
+    store.setSetupDone(true);
   }, [store]);
 
   // -------------------------------------------------------------------------
@@ -173,14 +288,14 @@ const App: React.FC = () => {
           store.setWarehouses([warehouse]);
           store.setDepartments(departments);
           store.setSettings(s => ({ ...s, warehouseId: warehouse.id, brandName: brandName || s.brandName }));
-          store.setSetupDone(true);
-          store.pushNotification({
+          notify({
             type: 'SUCCESS',
             title: 'Setup complete',
             message: `${warehouse.name} is ready. Start by adding inventory or laying out your floor.`,
           });
+          enterWarehouseExperience();
         }}
-        onSkip={() => store.setSetupDone(true)}
+        onSkip={enterWarehouseExperience}
       />
     );
   }
@@ -210,7 +325,7 @@ const App: React.FC = () => {
             <div className="text-[10px] uppercase tracking-widest text-[#8a8174]">Warehouse OS</div>
           </div>
         </div>
-        <button
+        <button type="button"
           onClick={() => setNavOpen(false)}
           className="rounded p-1.5 text-[#7d7569] hover:bg-[#d1c8bb] hover:text-[#2b2925] lg:hidden"
           aria-label="Close menu"
@@ -225,7 +340,7 @@ const App: React.FC = () => {
           const isActive = tab === item.id;
           return (
             <li key={item.id}>
-              <button
+              <button type="button"
                 onClick={() => { setTab(item.id); setNavOpen(false); }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
                   isActive
@@ -253,7 +368,7 @@ const App: React.FC = () => {
 
       {/* Bottom action: Settings */}
       <div className="border-t border-[#b6aa9b] p-2">
-        <button
+        <button type="button"
           onClick={() => { setSettingsOpen(true); setNavOpen(false); }}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[#5f5950] transition hover:bg-[#dad1c5] hover:text-[#2b2925]"
         >
@@ -295,7 +410,7 @@ const App: React.FC = () => {
         {/* Top bar */}
         <header className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-[#b6aa9b] bg-[#ede6dc] px-3 py-3 sm:px-4 min-[769px]:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <button
+            <button type="button"
               onClick={() => setNavOpen(true)}
               className="rounded p-2 text-[#7d7569] hover:bg-[#d1c8bb] hover:text-[#2b2925] lg:hidden"
               aria-label="Open menu"
@@ -305,7 +420,7 @@ const App: React.FC = () => {
 
             {/* Warehouse picker */}
             <div className="relative min-w-0">
-              <button
+              <button type="button"
                 onClick={() => setWhPickerOpen(o => !o)}
                 className="flex w-full max-w-[min(18rem,70vw)] items-center gap-2 rounded-lg border border-[#bfb2a2] bg-[#ddd5c8] px-3 py-2 text-left transition hover:bg-[#d1c8bb] min-[481px]:w-auto"
               >
@@ -322,7 +437,7 @@ const App: React.FC = () => {
                   <div className="fixed inset-0 z-30" onClick={() => setWhPickerOpen(false)} />
                   <div className="absolute left-0 top-full z-40 mt-1 w-[min(18rem,calc(100vw-2rem))] rounded-lg border border-[#b6aa9b] bg-[#ede6dc] p-1 shadow-2xl">
                     {store.warehouses.map(wh => (
-                      <button
+                      <button type="button"
                         key={wh.id}
                         onClick={() => {
                           store.setSettings(s => ({ ...s, warehouseId: wh.id }));
@@ -342,7 +457,7 @@ const App: React.FC = () => {
                       </button>
                     ))}
                     <div className="my-1 border-t border-[#b6aa9b]" />
-                    <button
+                    <button type="button"
                       onClick={addWarehouse}
                       className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-[#5f5950] transition hover:bg-[#d8cfc2] hover:text-[#2b2925]"
                     >
@@ -376,70 +491,82 @@ const App: React.FC = () => {
           </div>
         </header>
 
+        {!isOnline && (
+          <div className="flex shrink-0 items-center justify-center gap-2 border-b border-amber-400/40 bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-950" role="status">
+            <WifiOff size={14} aria-hidden="true" />
+            Offline mode: saved warehouse data remains available and changes will stay on this device.
+          </div>
+        )}
+
         {/* Main content */}
         <main
-          className="flex-1 overflow-visible lg:overflow-x-hidden lg:overflow-y-auto"
+          data-scroll-region="app-main"
+          className={`flex-1 overflow-visible lg:min-h-0 lg:overflow-x-hidden ${
+            tab === 'map' ? 'lg:overflow-y-hidden' : 'lg:overflow-y-auto lg:overscroll-contain'
+          }`}
           style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehaviorY: 'auto' }}
         >
-          {tab === 'dashboard' && (
-            <Dashboard
-              warehouseName={activeWarehouseName}
-              inventory={store.inventory}
-              racks={store.racks}
-              orders={store.orders}
-              departments={store.departments}
-              settings={store.settings}
-              onNavigate={(t) => setTab(t === 'analytics' ? 'analytics' : t as Tab)}
-            />
-          )}
-          {tab === 'inventory' && (
-            <InventoryManager
-              inventory={store.inventory}
-              setInventory={store.setInventory}
-              departments={store.departments}
-              racks={store.racks}
-              warehouseId={store.settings.warehouseId}
-              settings={store.settings}
-              onNotify={store.pushNotification}
-            />
-          )}
-          {tab === 'map' && (
-            <WarehouseMapView
-              racks={store.racks}
-              setRacks={store.setRacks}
-              inventory={store.inventory}
-              departments={store.departments}
-              warehouseId={store.settings.warehouseId}
-              settings={store.settings}
-              onSettingsChange={(patch) => store.setSettings(s => ({ ...s, ...patch }))}
-              onNotify={store.pushNotification}
-            />
-          )}
-          {tab === 'pull' && (
-            <SmartPullSystem
-              inventory={store.inventory}
-              setInventory={store.setInventory}
-              orders={store.orders}
-              setOrders={store.setOrders}
-              racks={store.racks}
-              departments={store.departments}
-              warehouseId={store.settings.warehouseId}
-              settings={store.settings}
-              onNotify={store.pushNotification}
-            />
-          )}
-          {tab === 'analytics' && (
-            <ReportingModule
-              inventory={store.inventory}
-              orders={store.orders}
-              racks={store.racks}
-              departments={store.departments}
-              warehouseId={store.settings.warehouseId}
-              warehouseName={activeWarehouseName}
-              settings={store.settings}
-              onNotify={store.pushNotification}
-            />
-          )}
+          <Suspense fallback={<LoadingState label="Loading screen" />}>
+            {tab === 'dashboard' && (
+              <Dashboard
+                warehouseName={activeWarehouseName}
+                inventory={store.inventory}
+                racks={store.racks}
+                orders={store.orders}
+                departments={store.departments}
+                settings={store.settings}
+                onNavigate={(nextTab) => setTab(nextTab === 'analytics' ? 'analytics' : nextTab as Tab)}
+              />
+            )}
+            {tab === 'inventory' && (
+              <InventoryManager
+                inventory={store.inventory}
+                setInventory={store.setInventory}
+                departments={store.departments}
+                racks={store.racks}
+                warehouseId={store.settings.warehouseId}
+                settings={store.settings}
+                onNotify={notify}
+              />
+            )}
+            {tab === 'map' && (
+              <WarehouseMapView
+                racks={store.racks}
+                setRacks={store.setRacks}
+                inventory={store.inventory}
+                departments={store.departments}
+                warehouseId={store.settings.warehouseId}
+                settings={store.settings}
+                onSettingsChange={(patch) => store.setSettings(s => ({ ...s, ...patch }))}
+                onNotify={notify}
+              />
+            )}
+            {tab === 'pull' && (
+              <SmartPullSystem
+                inventory={store.inventory}
+                setInventory={store.setInventory}
+                orders={store.orders}
+                setOrders={store.setOrders}
+                racks={store.racks}
+                departments={store.departments}
+                warehouseId={store.settings.warehouseId}
+                settings={store.settings}
+                onNotify={notify}
+              />
+            )}
+            {tab === 'analytics' && (
+              <ReportingModule
+                inventory={store.inventory}
+                orders={store.orders}
+                racks={store.racks}
+                departments={store.departments}
+                warehouseId={store.settings.warehouseId}
+                warehouseName={activeWarehouseName}
+                settings={store.settings}
+                onNotify={notify}
+              />
+            )}
+          </Suspense>
         </main>
       </div>
 
@@ -450,42 +577,64 @@ const App: React.FC = () => {
 
       {/* Overlays */}
       {scannerOpen && (
-        <ScannerOverlay
-          inventory={store.inventory}
-          departments={store.departments}
-          onClose={() => setScannerOpen(false)}
-          onItemFound={() => {
-            setScannerOpen(false);
-            setTab('inventory');
-          }}
-        />
+        <Suspense fallback={<LoadingState label="Loading scanner" />}>
+          <ScannerOverlay
+            inventory={store.inventory}
+            departments={store.departments}
+            onClose={() => setScannerOpen(false)}
+            onItemFound={() => {
+              setScannerOpen(false);
+              setTab('inventory');
+            }}
+          />
+        </Suspense>
       )}
       {notifOpen && (
-        <NotificationCenter
-          notifications={store.notifications}
-          setNotifications={store.setNotifications}
-          onClose={() => setNotifOpen(false)}
-        />
+        <Suspense fallback={<LoadingState label="Loading notifications" />}>
+          <NotificationCenter
+            notifications={store.notifications}
+            setNotifications={store.setNotifications}
+            onClose={() => setNotifOpen(false)}
+          />
+        </Suspense>
       )}
       {settingsOpen && (
-        <SettingsPanel
-          settings={store.settings}
-          setSettings={store.setSettings}
-          departments={store.departments}
-          setDepartments={store.setDepartments}
-          warehouses={store.warehouses}
-          setWarehouses={store.setWarehouses}
-          onResetSetup={resetSetup}
-          onResetAll={resetAll}
-          onClose={() => setSettingsOpen(false)}
-        />
+        <Suspense fallback={<LoadingState label="Loading settings" />}>
+          <SettingsPanel
+            settings={store.settings}
+            setSettings={store.setSettings}
+            departments={store.departments}
+            setDepartments={store.setDepartments}
+            warehouses={store.warehouses}
+            setWarehouses={store.setWarehouses}
+            onResetSetup={resetSetup}
+            onResetAll={resetAll}
+            onClose={() => setSettingsOpen(false)}
+          />
+        </Suspense>
+      )}
+
+      {toast && (
+        <div
+          className="fixed bottom-4 right-4 z-[230] max-w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-[#b6aa9b] bg-[#f4f0e8] p-4 text-[#2b2925] shadow-2xl"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${toast.type === 'ERROR' ? 'bg-red-500' : toast.type === 'WARNING' ? 'bg-amber-500' : toast.type === 'SUCCESS' ? 'bg-emerald-600' : 'bg-[#5d7f81]'}`} />
+            <div className="min-w-0">
+              <div className="text-xs font-black uppercase tracking-widest">{toast.title}</div>
+              {toast.message && <div className="mt-1 text-sm leading-snug text-[#665e54]">{toast.message}</div>}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 };
 
 const IconBtn: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; badge?: number }> = ({ onClick, icon, label, badge }) => (
-  <button
+  <button type="button"
     onClick={onClick}
     title={label}
     aria-label={label}

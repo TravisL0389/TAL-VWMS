@@ -7,6 +7,7 @@ import type { AppSettings, DepartmentDef, IconKey, Warehouse } from '../types';
 import { ICON_OPTIONS, getIcon } from '../constants';
 import { isAIConfigured } from '../utils/aiService';
 import { shortId } from '../utils/storage';
+import { sanitizeCompactCode, sanitizeUserText } from '../utils/sanitize';
 
 // =============================================================================
 // SettingsPanel — slide-out for app-wide configuration.
@@ -40,7 +41,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const aiOn = isAIConfigured() && settings.enableAI;
 
   const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
-    setSettings(s => ({ ...s, [key]: value }));
+    const nextValue = typeof value === 'string'
+      ? sanitizeUserText(value, 64) as AppSettings[K]
+      : value;
+    setSettings(s => ({ ...s, [key]: nextValue }));
   };
 
   const addWarehouse = () => {
@@ -55,7 +59,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const renameWarehouse = (id: string, name: string) => {
-    setWarehouses(prev => prev.map(w => w.id === id ? { ...w, name } : w));
+    setWarehouses(prev => prev.map(w => w.id === id ? { ...w, name: sanitizeUserText(name, 80) || 'Warehouse' } : w));
   };
 
   const deleteWarehouse = (id: string) => {
@@ -78,7 +82,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const updateDept = (id: string, patch: Partial<DepartmentDef>) => {
-    setDepartments(prev => prev.map(d => d.id === id ? { ...d, ...patch } : d));
+    const safePatch: Partial<DepartmentDef> = {
+      ...patch,
+      ...(patch.label !== undefined ? { label: sanitizeUserText(patch.label, 48) || 'Category' } : {}),
+      ...(patch.prefix !== undefined ? { prefix: sanitizeCompactCode(patch.prefix, 4).toUpperCase() || 'NEW' } : {}),
+    };
+    setDepartments(prev => prev.map(d => d.id === id ? { ...d, ...safePatch } : d));
   };
 
   const removeDept = (id: string) => {
@@ -108,7 +117,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <h2 className="text-lg font-bold text-[#232321]">Settings</h2>
             </div>
           </div>
-          <button
+          <button type="button"
             onClick={onClose}
             className="rounded p-2 text-[#7d7569] hover:bg-[#d8cfc2] hover:text-[#232321]"
             aria-label="Close"
@@ -178,7 +187,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     onChange={e => renameWarehouse(wh.id, e.target.value)}
                     className="flex-1 rounded bg-transparent px-2 py-1 text-sm text-[#232321] focus:outline-none"
                   />
-                  <button
+                  <button type="button"
                     onClick={() => updateSetting('warehouseId', wh.id)}
                     className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
                       settings.warehouseId === wh.id
@@ -189,7 +198,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     {settings.warehouseId === wh.id ? <><Check size={10} /> Active</> : 'Activate'}
                   </button>
                   {warehouses.length > 1 && (
-                    <button
+                    <button type="button"
                       onClick={() => deleteWarehouse(wh.id)}
                       className="rounded p-1 text-[#8b8378] hover:bg-red-600/10 hover:text-red-400"
                       aria-label="Delete warehouse"
@@ -199,7 +208,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   )}
                 </div>
               ))}
-              <button
+              <button type="button"
                 onClick={addWarehouse}
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#b6aa9b] py-2 text-xs font-semibold text-[#625a50] transition hover:border-[#5d7f81] hover:text-[#5d7f81]"
               >
@@ -238,14 +247,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                           placeholder="PFX"
                         />
                       </div>
-                      <button
+                      <button type="button"
                         onClick={() => setEditingDept(isEditing ? null : d.id)}
                         className="rounded p-1.5 text-[#7d7569] hover:bg-[#d8cfc2] hover:text-[#232321]"
                       >
                         <Palette size={12} />
                       </button>
                       {departments.length > 1 && (
-                        <button
+                        <button type="button"
                           onClick={() => removeDept(d.id)}
                           className="rounded p-1.5 text-[#8b8378] hover:bg-red-600/10 hover:text-red-400"
                         >
@@ -259,7 +268,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                           <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#7d7569]">Color</div>
                           <div className="flex flex-wrap gap-1.5">
                             {PALETTE.map(c => (
-                              <button
+                              <button type="button"
                                 key={c}
                                 onClick={() => updateDept(d.id, { color: c })}
                                 className={`h-6 w-6 rounded transition ${d.color === c ? 'ring-2 ring-[#232321] ring-offset-2 ring-offset-[#f1ebe2]' : ''}`}
@@ -275,7 +284,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                             {ICON_OPTIONS.map(key => {
                               const I = getIcon(key);
                               return (
-                                <button
+                                <button type="button"
                                   key={key}
                                   onClick={() => updateDept(d.id, { icon: key as IconKey })}
                                   className={`flex h-7 w-7 items-center justify-center rounded transition ${
@@ -293,7 +302,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   </div>
                 );
               })}
-              <button
+              <button type="button"
                 onClick={addDepartment}
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#b6aa9b] py-2 text-xs font-semibold text-[#625a50] transition hover:border-[#5d7f81] hover:text-[#5d7f81]"
               >
@@ -306,7 +315,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <Section title="Layout & Display" icon={<PanelLeft size={14} />}>
             <Field label="Sidebar Position">
               <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2">
-                <button
+                <button type="button"
                   onClick={() => updateSetting('sidebarPosition', 'LEFT')}
                   className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition ${
                     settings.sidebarPosition === 'LEFT'
@@ -316,7 +325,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 >
                   <PanelLeft size={14} /> Left
                 </button>
-                <button
+                <button type="button"
                   onClick={() => updateSetting('sidebarPosition', 'RIGHT')}
                   className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition ${
                     settings.sidebarPosition === 'RIGHT'
@@ -332,7 +341,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
             <Field label="Density">
               <div className="grid grid-cols-1 gap-2 min-[481px]:grid-cols-2">
-                <button
+                <button type="button"
                   onClick={() => updateSetting('density', 'COMFORTABLE')}
                   className={`rounded-lg border py-2 text-sm font-semibold transition ${
                     settings.density === 'COMFORTABLE'
@@ -342,7 +351,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 >
                   Comfortable
                 </button>
-                <button
+                <button type="button"
                   onClick={() => updateSetting('density', 'COMPACT')}
                   className={`rounded-lg border py-2 text-sm font-semibold transition ${
                     settings.density === 'COMPACT'
@@ -385,7 +394,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           {/* Danger zone */}
           <Section title="Danger Zone" icon={<AlertTriangle size={14} />} danger>
             <div className="space-y-2">
-              <button
+              <button type="button"
                 onClick={() => setConfirmReset('setup')}
                 className="flex w-full items-center justify-between rounded-lg border border-yellow-600/30 bg-yellow-600/5 p-3 text-left transition hover:bg-yellow-600/10"
               >
@@ -395,7 +404,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </div>
                 <RotateCw size={14} className="text-yellow-400" />
               </button>
-              <button
+              <button type="button"
                 onClick={() => setConfirmReset('all')}
                 className="flex w-full items-center justify-between rounded-lg border border-red-600/30 bg-red-600/5 p-3 text-left transition hover:bg-red-600/10"
               >
@@ -435,13 +444,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   : 'All warehouses, inventory, orders, racks, and settings will be permanently deleted. This cannot be undone.'}
               </p>
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   onClick={() => setConfirmReset(null)}
                   className="flex-1 rounded border border-[#b6aa9b] py-2 text-sm text-[#625a50] hover:bg-[#d8cfc2]"
                 >
                   Cancel
                 </button>
-                <button
+                <button type="button"
                   onClick={() => {
                     if (confirmReset === 'setup') onResetSetup();
                     else onResetAll();
@@ -502,7 +511,7 @@ const Toggle: React.FC<{
       </div>
       <div className="mt-0.5 text-[11px] text-[#8b8378]">{description}</div>
     </div>
-    <button
+    <button type="button"
       onClick={() => onChange(!checked)}
       className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-[#5d7f81]' : 'bg-[#b6aa9b]'}`}
       role="switch"

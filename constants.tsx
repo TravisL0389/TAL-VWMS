@@ -5,12 +5,13 @@ import {
   Pill, Utensils, Beaker, Leaf, Gift, Monitor,
   Package, Archive, Briefcase, Wine, Baby, Book,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { IconKey, DepartmentDef, Warehouse, AppSettings } from './types';
 
 // =============================================================================
 // Icon registry — every IconKey must be present here.
 // =============================================================================
-export const ICON_MAP: Record<IconKey, React.ElementType> = {
+export const ICON_MAP: Record<IconKey, LucideIcon> = {
   sparkles: Sparkles,
   lightbulb: Lightbulb,
   cpu: Cpu,
@@ -181,7 +182,7 @@ export function getDepartmentMeta(
   );
 }
 
-export function getIcon(key: IconKey): React.ElementType {
+export function getIcon(key: IconKey): LucideIcon {
   return ICON_MAP[key] || Box;
 }
 

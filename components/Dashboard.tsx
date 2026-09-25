@@ -4,7 +4,7 @@ import {
   ChevronRight, Sparkles, RefreshCw, MapPin, Boxes, ClipboardList, Loader2,
 } from 'lucide-react';
 import type { DepartmentDef, InventoryItem, Order, Rack, AppSettings } from '../types';
-import { getDepartmentMeta, getIcon } from '../constants';
+import { getIcon } from '../constants';
 import { localInsights, aiInsights, isAIConfigured, type InventoryInsight } from '../utils/aiService';
 
 interface DashboardProps {
@@ -155,7 +155,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <h3 className="text-[10px] font-black text-[#2b2925] uppercase tracking-widest">Inventory by category</h3>
               <p className="mt-0.5 text-[9px] uppercase tracking-widest text-[#8a8174]">Live unit counts</p>
             </div>
-            <button
+            <button type="button"
               onClick={() => onNavigate('analytics')}
               className="text-[9px] font-bold text-cyan-300 hover:text-cyan-200 uppercase tracking-widest transition-colors flex items-center gap-1.5"
             >
@@ -233,7 +233,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               </span>
             )}
           </div>
-          <button
+          <button type="button"
             onClick={refreshInsights}
             disabled={insightsLoading}
             className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-[#8a8174] transition-colors hover:text-[#2b2925] disabled:opacity-50"
@@ -270,7 +270,7 @@ const StatCard: React.FC<{
   trend?: 'up' | 'down' | 'flat';
   onClick?: () => void;
 }> = ({ title, value, icon, subtitle, trend, onClick }) => (
-  <button
+  <button type="button"
     onClick={onClick}
     disabled={!onClick}
     className={`group rounded border border-[#c7bcae] bg-[#f4f0e8] p-4 text-left transition-all ${
@@ -289,7 +289,7 @@ const StatCard: React.FC<{
 );
 
 const PrimaryAction: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string }> = ({ onClick, icon, label }) => (
-  <button
+  <button type="button"
     onClick={onClick}
     className="flex items-center gap-2 rounded bg-cyan-700 px-4 py-2.5 font-black text-[10px] uppercase tracking-widest text-white shadow-lg transition-all hover:bg-cyan-600 active:scale-95"
   >

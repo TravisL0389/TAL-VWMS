@@ -9,6 +9,8 @@ import type {
   AppSettings, Warehouse, DepartmentDef, Rack, InventoryItem, Order, Notification,
 } from '../types';
 
+type StateUpdater<T> = T | ((prev: T) => T);
+
 // ---------------------------------------------------------------------------
 // useDataStore — single hook every component reads from. Persists everything
 // to localStorage automatically.
@@ -24,6 +26,10 @@ const DEFAULT_NOTIFICATIONS: Notification[] = [
     unread: true,
   },
 ];
+
+const EMPTY_RACKS: Rack[] = [];
+const EMPTY_INVENTORY: InventoryItem[] = [];
+const EMPTY_ORDERS: Order[] = [];
 
 const VALID_ICON_KEYS = new Set<string>(ICON_OPTIONS);
 
@@ -79,14 +85,6 @@ function sanitizeDepartments(raw: unknown): DepartmentDef[] {
     }];
   });
   return departments.length > 0 ? departments : INDUSTRY_PRESETS[0].departments.map(d => ({ ...d }));
-}
-
-function sanitizeRecordOfArrays<T>(raw: unknown): Record<string, T[]> {
-  if (!isRecord(raw)) return {};
-  return Object.entries(raw).reduce<Record<string, T[]>>((acc, [key, value]) => {
-    if (Array.isArray(value)) acc[key] = value as T[];
-    return acc;
-  }, {});
 }
 
 function sanitizeNotifications(raw: unknown): Notification[] {
@@ -214,6 +212,15 @@ function sanitizeRecordOfEntities<T>(raw: unknown, sanitizeArray: (value: unknow
   }, {});
 }
 
+function resolveUpdater<T>(updater: StateUpdater<T>, current: T): T {
+  return typeof updater === 'function'
+    ? (updater as (prev: T) => T)(current)
+    : updater;
+}
+
+/**
+ * Centralized client-side data store with localStorage persistence and sanitation.
+ */
 export function useDataStore() {
   const initialWarehouses = sanitizeWarehouses(
     loadJSON<unknown>(STORAGE_KEYS.WAREHOUSES, [DEFAULT_WAREHOUSE])
@@ -284,30 +291,30 @@ export function useDataStore() {
 
   // Convenience accessors for the active warehouse
   const activeId = settings.warehouseId;
-  const racks = racksByWh[activeId] || [];
-  const inventory = inventoryByWh[activeId] || [];
-  const orders = ordersByWh[activeId] || [];
+  const racks = racksByWh[activeId] ?? EMPTY_RACKS;
+  const inventory = inventoryByWh[activeId] ?? EMPTY_INVENTORY;
+  const orders = ordersByWh[activeId] ?? EMPTY_ORDERS;
 
-  const setRacks = useCallback((updater: Rack[] | ((prev: Rack[]) => Rack[])) => {
+  const setRacks = useCallback((updater: StateUpdater<Rack[]>) => {
     setRacksByWh(prev => {
       const current = prev[activeId] || [];
-      const next = typeof updater === 'function' ? (updater as any)(current) : updater;
+      const next = resolveUpdater(updater, current);
       return { ...prev, [activeId]: next };
     });
   }, [activeId]);
 
-  const setInventory = useCallback((updater: InventoryItem[] | ((prev: InventoryItem[]) => InventoryItem[])) => {
+  const setInventory = useCallback((updater: StateUpdater<InventoryItem[]>) => {
     setInventoryByWh(prev => {
       const current = prev[activeId] || [];
-      const next = typeof updater === 'function' ? (updater as any)(current) : updater;
+      const next = resolveUpdater(updater, current);
       return { ...prev, [activeId]: next };
     });
   }, [activeId]);
 
-  const setOrders = useCallback((updater: Order[] | ((prev: Order[]) => Order[])) => {
+  const setOrders = useCallback((updater: StateUpdater<Order[]>) => {
     setOrdersByWh(prev => {
       const current = prev[activeId] || [];
-      const next = typeof updater === 'function' ? (updater as any)(current) : updater;
+      const next = resolveUpdater(updater, current);
       return { ...prev, [activeId]: next };
     });
   }, [activeId]);
